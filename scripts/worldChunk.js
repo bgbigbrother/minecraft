@@ -241,31 +241,6 @@ export class WorldChunk extends THREE.Group {
       }
     }
   }
-  // generateClouds(rng) {
-  //     const simplex = new SimplexNoise(rng);
-  //     const cloudMaterial = new THREE.MeshStandardMaterial({
-  //         color: 0xffffff,
-  //         transparent: true,
-  //         opacity: 0.5, // Adjust transparency level
-  //     });
-
-  //     for (let x = 0; x < this.size.width; x++) {
-  //         for (let z = 0; z < this.size.width; z++) {
-  //             const value = (simplex.noise(
-  //                 (this.position.x + x) / this.params.clouds.scale,
-  //                 (this.position.z + z) / this.params.clouds.scale
-  //             ) + 1) * 0.5;
-
-  //             if (value < this.params.clouds.density) {
-  //                 // Assuming setBlockId creates a new mesh:
-  //                 const geometry = new THREE.BoxGeometry(1, 1, 1); // Replace with your block's size
-  //                 const cloudBlock = new THREE.Mesh(geometry, cloudMaterial);
-  //                 cloudBlock.position.set(x, this.size.height - 1, z); // Position the block
-  //                 this.scene.add(cloudBlock); // Assuming your scene is stored in this.scene
-  //             }
-  //         }
-  //     }
-  // }
 
   /**
    * Pulls any changes from the data store and applies them to the data model
@@ -284,11 +259,13 @@ export class WorldChunk extends THREE.Group {
   }
 
   generateWater() {
-    const material = new THREE.MeshLambertMaterial({
-      color: 0x3030f2,
-      transparent: true,
-      opacity: 0.8,
-      side: THREE.DoubleSide
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x3030f2,          // Base water color
+      transparent: true,        // Enable transparency
+      opacity: 0.8,             // Slightly transparent
+      metalness: 0.8,           // For reflective properties
+      roughness: 0.2,           // Slight roughness for realism
+      side: THREE.DoubleSide    // Render both sides
     });
 
     const waterMesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);

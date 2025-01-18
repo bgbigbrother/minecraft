@@ -1,4 +1,4 @@
-import { Vector3, Vector2, PerspectiveCamera, CameraHelper, Raycaster, Group, Mesh, CylinderGeometry, MeshBasicMaterial, BoxGeometry, Euler, Matrix4 } from 'three';
+import { Vector3, Vector2, PerspectiveCamera, CameraHelper, Raycaster, Group, Mesh, CylinderGeometry, MeshBasicMaterial, BoxGeometry, Euler, Matrix4, Fog } from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { blocks } from '../textures/blocks.js';
 
@@ -84,6 +84,20 @@ export class PlayerBase {
     }
 
     /**
+     * Updates the scene fog if the player is on a plane
+     */
+    updateSceneFog() {
+        if(this.scene) {
+            if(this.position.y < this.world.params.terrain.waterOffset + 0.4) {
+                this.scene.fog = new Fog(0x3030f2, 1, 10); // Adjust near and far for density
+            } else if (this.scene.fog) {
+                // Player is above water, reset fog
+                this.scene.fog = null; // Remove fog
+            }
+        }
+    }
+
+    /**
      * Updates the position of the player's bounding cylinder helper
      */
     updateBoundsHelper() {
@@ -135,16 +149,16 @@ export class PlayerBase {
      */
     applyInputs(dt) {
         if (this.controls.isLocked === true) {
-        this.velocity.x = this.input.x * (this.sprinting ? 1.5 : 1);
-        this.velocity.z = this.input.z * (this.sprinting ? 1.5 : 1);
-        this.controls.moveRight(this.velocity.x * dt);
-        this.controls.moveForward(this.velocity.z * dt);
-        this.position.y += this.velocity.y * dt;
+            this.velocity.x = this.input.x * (this.sprinting ? 1.5 : 1);
+            this.velocity.z = this.input.z * (this.sprinting ? 1.5 : 1);
+            this.controls.moveRight(this.velocity.x * dt);
+            this.controls.moveForward(this.velocity.z * dt);
+            this.position.y += this.velocity.y * dt;
 
-        if (this.position.y < 0) {
-            this.position.y = 0;
-            this.velocity.y = 0;
-        }
+            if (this.position.y < 0) {
+                this.position.y = 0;
+                this.velocity.y = 0;
+            }
         }
 
         document.getElementById('info-player-position').innerHTML = this.toString();

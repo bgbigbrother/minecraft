@@ -7,6 +7,7 @@ export class Player extends  ToolControllsPlayerBase {
   constructor(scene, world) {
     super();
     this.world = world;
+    this.scene = scene;
     this.position.set(32, 32, 32);
     scene.add(this.camera);
     scene.add(this.cameraHelper);
@@ -19,6 +20,7 @@ export class Player extends  ToolControllsPlayerBase {
    * @param {World} world 
    */
   update(world) {
+    this.updateSceneFog();
     this.updateBoundsHelper();
     this.updateRaycaster(world);
 
