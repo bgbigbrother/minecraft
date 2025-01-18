@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
-import { RNG } from './rng';
+import { RNG } from './libraries/rng';
 import { blocks } from './textures/blocks.js';
 import { resources } from './textures/resources';
 
@@ -241,6 +241,31 @@ export class WorldChunk extends THREE.Group {
       }
     }
   }
+  // generateClouds(rng) {
+  //     const simplex = new SimplexNoise(rng);
+  //     const cloudMaterial = new THREE.MeshStandardMaterial({
+  //         color: 0xffffff,
+  //         transparent: true,
+  //         opacity: 0.5, // Adjust transparency level
+  //     });
+
+  //     for (let x = 0; x < this.size.width; x++) {
+  //         for (let z = 0; z < this.size.width; z++) {
+  //             const value = (simplex.noise(
+  //                 (this.position.x + x) / this.params.clouds.scale,
+  //                 (this.position.z + z) / this.params.clouds.scale
+  //             ) + 1) * 0.5;
+
+  //             if (value < this.params.clouds.density) {
+  //                 // Assuming setBlockId creates a new mesh:
+  //                 const geometry = new THREE.BoxGeometry(1, 1, 1); // Replace with your block's size
+  //                 const cloudBlock = new THREE.Mesh(geometry, cloudMaterial);
+  //                 cloudBlock.position.set(x, this.size.height - 1, z); // Position the block
+  //                 this.scene.add(cloudBlock); // Assuming your scene is stored in this.scene
+  //             }
+  //         }
+  //     }
+  // }
 
   /**
    * Pulls any changes from the data store and applies them to the data model

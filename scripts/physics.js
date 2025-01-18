@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { blocks } from './textures/blocks';
-import { Player } from './player';
+import { Player } from './player/player';
 import { WorldChunk } from './worldChunk';
 
 const collisionMaterial = new THREE.MeshBasicMaterial({

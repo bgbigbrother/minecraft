@@ -1,6 +1,6 @@
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-export class ModelLoader {
+export class ToolLoader {
   loader = new GLTFLoader();
 
   models = {

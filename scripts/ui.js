@@ -12,8 +12,8 @@ export function setupUI(world, player, physics, scene) {
   const gui = new GUI();
 
   const playerFolder = gui.addFolder('Player').close();;
-  playerFolder.add(player, 'maxSpeed', 1, 20, 0.1).name('Max Speed');
-  playerFolder.add(player, 'jumpSpeed', 1, 20, 0.1).name('Jump Speed');
+  playerFolder.add(player, 'maxSpeed', 1, 500, 0.1).name('Max Speed');
+  playerFolder.add(player, 'jumpSpeed', 1, 250, 0.1).name('Jump Speed');
   playerFolder.add(player.boundsHelper, 'visible').name('Show Player Bounds');
   playerFolder.add(player.cameraHelper, 'visible').name('Show Camera Helper');
 
