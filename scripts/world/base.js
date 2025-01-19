@@ -52,7 +52,7 @@ export class WorldBaseClass extends Group {
     },
     clouds: {
       scale: 30,
-      density: 0.3
+      density: 0.5
     }
   };
 

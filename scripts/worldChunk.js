@@ -32,13 +32,61 @@ export class WorldChunk extends THREE.Group {
     const rng = new RNG(this.params.seed);
     this.initializeTerrain();
     this.generateTerrain(rng);
-    this.generateClouds(rng);
     this.loadPlayerChanges();
-    this.generateMeshes();
+    this.generateMeshes(rng);
 
     this.loaded = true;
 
     //console.log(`Loaded chunk in ${performance.now() - start}ms`);
+  }
+
+  generateClouds(rng) {
+    const simplex = new SimplexNoise(rng);
+
+    // Create a geometry and material for the cloud plane
+    const cloudGeometry = new THREE.PlaneGeometry(
+      this.size.width,
+      this.size.width,
+      this.size.width / 2,
+      this.size.width / 2
+    );
+
+    const cloudMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffffff, // Cloud color
+      transparent: true,
+      opacity: 0.8, // Slight transparency for a cloud effect
+      side: THREE.DoubleSide // Render both sides of the plane
+    });
+
+    // Modify the vertices of the plane based on the noise function
+    const vertices = cloudGeometry.attributes.position.array;
+    for (let i = 0; i < vertices.length; i += 3) {
+        const x = vertices[i];
+        const z = vertices[i + 2];
+
+        const value = (simplex.noise(
+            (this.position.x + x) / this.params.clouds.scale,
+            (this.position.z + z) / this.params.clouds.scale
+        ) + 1) * 0.5;
+
+        if (value < this.params.clouds.density) {
+            vertices[i + 1] = 0; // Keep cloud flat at height 0
+        }
+    }
+
+    cloudGeometry.attributes.position.needsUpdate = true;
+    cloudGeometry.computeVertexNormals();
+
+    // Create the cloud mesh and add it to the scene
+    const cloudPlane = new THREE.Mesh(cloudGeometry, cloudMaterial);
+    cloudPlane.rotation.x = -Math.PI / 2; // Rotate to lay flat
+    cloudPlane.position.set(
+      this.size.width / 2,
+      this.size.height,
+      this.size.width / 2
+    );
+    cloudPlane.layers.set(1);
+    this.add(cloudPlane);
   }
 
   /**
@@ -223,26 +271,6 @@ export class WorldChunk extends THREE.Group {
   }
 
   /**
-   * Creates happy little clouds
-   * @param {RNG} rng 
-   */
-  generateClouds(rng) {
-    const simplex = new SimplexNoise(rng);
-    for (let x = 0; x < this.size.width; x++) {
-      for (let z = 0; z < this.size.width; z++) {
-        const value = (simplex.noise(
-          (this.position.x + x) / this.params.clouds.scale,
-          (this.position.z + z) / this.params.clouds.scale
-        ) + 1) * 0.5;
-
-        if (value < this.params.clouds.density) {
-          this.setBlockId(x, this.size.height - 1, z, blocks.cloud.id);
-        }
-      }
-    }
-  }
-
-  /**
    * Pulls any changes from the data store and applies them to the data model
    */
   loadPlayerChanges() {
@@ -284,9 +312,10 @@ export class WorldChunk extends THREE.Group {
   /**
     * Generates the 3D representation of the world from the world data
     */
-  generateMeshes() {
+  generateMeshes(rng) {
     this.clear();
 
+    this.generateClouds(rng);
     this.generateWater();
 
     const maxCount = this.size.width * this.size.width * this.size.height;

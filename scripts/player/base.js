@@ -89,10 +89,10 @@ export class PlayerBase {
     updateSceneFog() {
         if(this.scene) {
             if(this.position.y < this.world.params.terrain.waterOffset + 0.4) {
-                this.scene.fog = new Fog(0x3030f2, 1, 10); // Adjust near and far for density
+                this.scene.fog = new Fog(0x3030f2, 0, 15); // Adjust near and far for density
             } else if (this.scene.fog) {
                 // Player is above water, reset fog
-                this.scene.fog = null; // Remove fog
+                this.scene.fog = new Fog(0x80a0e0, 50, 75); // Remove fog
             }
         }
     }
