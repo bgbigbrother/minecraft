@@ -18,7 +18,7 @@ export function animate(player, world) {
   if (player.controls.isLocked) {
     document.querySelector("audio").play();
     player.update(dt, world);
-    world.update(player);
+    world.update(dt, player);
 
     // Position the sun relative to the player. Need to adjust both the
     // position and target of the sun to keep the same sun angle

@@ -27,7 +27,7 @@ export class World extends EditChunkStoreWorldBaseClass {
    * current player position
    * @param {Player} player 
    */
-  update(player) {
+  update(dt, player) {
     const visibleChunks = this.getVisibleChunks(player);
     const chunksToAdd = this.getChunksToAdd(visibleChunks);
     this.removeUnusedChunks(visibleChunks);
@@ -35,6 +35,8 @@ export class World extends EditChunkStoreWorldBaseClass {
     for (const chunk of chunksToAdd) {
       this.generateChunk(chunk.x, chunk.z);
     }
+
+    this.children.forEach(child => child.update(dt))
   }
 
   /**

@@ -15,6 +15,8 @@ export class WorldChunk extends THREE.Group {
     * }[][][]}
   */
   data = [];
+  
+  mixers = [];
 
   constructor(size, params, dataStore) {
     super();
@@ -38,13 +40,33 @@ export class WorldChunk extends THREE.Group {
 
     for(let i in models) {
         const cl = clone(models[i].model); // Deep clone including materials
-        cl.position.set(this.size.width, this.size.height, this.size.width);
+        let clY;
+        for(let y = this.size.height; y > 0; y--) {
+          const block = this.getBlock(this.size.width - 1, y, this.size.width - 1);
+          if(block && block.id == blocks.dirt.id) {
+            clY = y + 1;
+            break
+          }
+        }
+        cl.position.set(this.size.width, clY, this.size.width);
         this.add(cl);
+
+        const mixer = new THREE.AnimationMixer(cl);
+        const clip = THREE.AnimationClip.findByName(models[i].animations, 'Eating');
+        if (clip) {
+            const action = mixer.clipAction(clip);
+            action.play();
+            this.mixers.push(mixer);
+        }
     }
 
     this.loaded = true;
 
     //console.log(`Loaded chunk in ${performance.now() - start}ms`);
+  }
+
+  update(deltaTime) {
+    this.mixers.forEach((mixer) => mixer.update(deltaTime));
   }
 
   generateClouds(rng) {
