@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
+import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { RNG } from './libraries/rng';
 import { blocks } from './textures/blocks.js';
 import { resources } from './textures/resources';
@@ -26,7 +27,7 @@ export class WorldChunk extends THREE.Group {
   /**
     * Generates the world data and meshes
     */
-  generate() {
+  generate(models) {
     const start = performance.now();
 
     const rng = new RNG(this.params.seed);
@@ -34,6 +35,12 @@ export class WorldChunk extends THREE.Group {
     this.generateTerrain(rng);
     this.loadPlayerChanges();
     this.generateMeshes(rng);
+
+    for(let i in models) {
+        const cl = clone(models[i].model); // Deep clone including materials
+        cl.position.set(this.size.width, this.size.height, this.size.width);
+        this.add(cl);
+    }
 
     this.loaded = true;
 

@@ -4,6 +4,7 @@ import { blocks } from '../textures/blocks';
 import { ToolControllsPlayerBase } from './tool';
 
 export class Player extends  ToolControllsPlayerBase {
+  #physics = null;
   constructor(scene, world) {
     super();
     this.world = world;
@@ -11,6 +12,7 @@ export class Player extends  ToolControllsPlayerBase {
     this.position.set(32, 32, 32);
     scene.add(this.camera);
     scene.add(this.cameraHelper);
+    scene.add(this.character);
     scene.add(this.boundsHelper);
     scene.add(this.selectionHelper);
   }
@@ -19,13 +21,20 @@ export class Player extends  ToolControllsPlayerBase {
    * Updates the state of the player
    * @param {World} world 
    */
-  update(world) {
-    this.updateSceneFog();
+  update(dt, world) {
     this.updateBoundsHelper();
     this.updateRaycaster(world);
+
+    if(this.#physics) {
+      this.#physics.update(dt, this, world);
+    }
 
     if (this.tool.animate) {
       this.updateToolAnimation();
     }
+  }
+
+  addPhysics(physics) {
+    this.#physics = physics;
   }
 }

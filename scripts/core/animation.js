@@ -8,8 +8,8 @@ import { scene } from './scene';
 
 // Render loop
 let previousTime = performance.now();
-export function animate(player, physics, world) {
-  requestAnimationFrame(animate.bind(this, player, physics, world));
+export function animate(player, world) {
+  requestAnimationFrame(animate.bind(this, player, world));
 
   const currentTime = performance.now();
   const dt = (currentTime - previousTime) / 1000;
@@ -17,8 +17,7 @@ export function animate(player, physics, world) {
   // Only update physics when player controls are locked
   if (player.controls.isLocked) {
     document.querySelector("audio").play();
-    physics.update(dt, player, world);
-    player.update(world);
+    player.update(dt, world);
     world.update(player);
 
     // Position the sun relative to the player. Need to adjust both the
@@ -34,6 +33,8 @@ export function animate(player, physics, world) {
     controls.target.copy(player.position);
   } else {
     document.querySelector("audio").pause();
+    player.character.visible = true;
+    player.tool.container.visible = false;
   }
 
   renderer.render(scene, player.controls.isLocked ? player.camera : orbitCamera);

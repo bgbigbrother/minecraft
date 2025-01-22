@@ -1,8 +1,8 @@
 import { EditChunkStoreWorldBaseClass } from './edit_chunk';
 
 export class World extends EditChunkStoreWorldBaseClass {
-  constructor() {
-    super();
+  constructor(models) {
+    super(models);
   }
 
   /**

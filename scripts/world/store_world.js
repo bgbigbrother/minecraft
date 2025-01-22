@@ -4,8 +4,8 @@ import { DataStore } from './world_store';
 export class StoreWorldBaseClass extends WorldBaseClass {
     dataStore = new DataStore();
 
-    constructor() {
-        super();
+    constructor(models) {
+        super(models);
 
         document.addEventListener('keydown', (ev) => {
             switch (ev.code) {

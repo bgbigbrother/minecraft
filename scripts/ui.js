@@ -1,6 +1,5 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { resources } from './textures/resources';
-import { Physics } from './physics';
 
 /**
  * Sets up the UI controls

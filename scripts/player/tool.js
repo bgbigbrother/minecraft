@@ -5,7 +5,7 @@ export class ToolControllsPlayerBase extends ControllsPlayerBase {
     constructor() {
         super();
         new ToolLoader((models) => {
-            this.setTool(models.pickaxe);
+            models.pickaxe && this.setTool(models.pickaxe);
         });
     }
 

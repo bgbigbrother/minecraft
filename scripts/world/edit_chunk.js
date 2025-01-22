@@ -1,8 +1,8 @@
 import { ChunkStoreWorldBaseClass } from './chunk';
 
 export class EditChunkStoreWorldBaseClass extends ChunkStoreWorldBaseClass {
-    constructor() {
-        super();
+    constructor(models) {
+        super(models);
     }
     
     /**

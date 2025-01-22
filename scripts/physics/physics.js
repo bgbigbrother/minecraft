@@ -1,32 +1,12 @@
-import * as THREE from 'three';
-import { blocks } from './textures/blocks';
-import { Player } from './player/player';
-import { WorldChunk } from './worldChunk';
+import { Vector3 } from 'three';
+import { blocks } from '../textures/blocks';
+import { Player } from '../player/player';
+import { WorldChunk } from '../worldChunk';
+import { BasePhysics } from './base';
 
-const collisionMaterial = new THREE.MeshBasicMaterial({
-  color: 0xff0000,
-  transparent: true,
-  opacity: 0.2
-});
-const collisionGeometry = new THREE.BoxGeometry(1.001, 1.001, 1.001);
-
-const contactMaterial = new THREE.MeshBasicMaterial({ wireframe: true, color: 0x00ff00 });
-const contactGeometry = new THREE.SphereGeometry(0.05, 6, 6);
-
-export class Physics {
-  // Acceleration due to gravity
-  gravity = 32;
-
-  // Physic simulation rate
-  simulationRate = 250;
-  stepSize = 1 / this.simulationRate;
-  // Accumulator to keep track of leftover dt
-  accumulator = 0;
-
+export class Physics extends BasePhysics {
   constructor(scene) {
-    this.helpers = new THREE.Group();
-    this.helpers.visible = false;
-    scene.add(this.helpers);
+    super(scene);
   }
 
   /**
@@ -129,11 +109,11 @@ export class Physics {
         // and the overlap between the point and the player's bounding cylinder
         let normal, overlap;
         if (overlapY < overlapXZ) {
-          normal = new THREE.Vector3(0, -Math.sign(dy), 0);
+          normal = new Vector3(0, -Math.sign(dy), 0);
           overlap = overlapY;
           player.onGround = true;
         } else {
-          normal = new THREE.Vector3(-dx, 0, -dz).normalize();
+          normal = new Vector3(-dx, 0, -dz).normalize();
           overlap = overlapXZ;
         }
 
@@ -199,25 +179,5 @@ export class Physics {
 
     // Check if contact point is inside the player's bounding cylinder
     return (Math.abs(dy) < player.height / 2) && (r_sq < player.radius * player.radius);
-  }
-
-  /**
-   * Visualizes the block the player is colliding with
-   * @param {THREE.Object3D} block 
-   */
-  addCollisionHelper(block) {
-    const blockMesh = new THREE.Mesh(collisionGeometry, collisionMaterial);
-    blockMesh.position.copy(block);
-    this.helpers.add(blockMesh);
-  }
-
-  /**
-   * Visualizes the contact at the point 'p'
-   * @param {{ x, y, z }} p 
-   */
-  addContactPointerHelper(p) {
-    const contactMesh = new THREE.Mesh(contactGeometry, contactMaterial);
-    contactMesh.position.copy(p);
-    this.helpers.add(contactMesh);
   }
 }

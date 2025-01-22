@@ -1,9 +1,10 @@
-import { Vector3, Vector2, PerspectiveCamera, CameraHelper, Raycaster, Group, Mesh, CylinderGeometry, MeshBasicMaterial, BoxGeometry, Euler, Matrix4, Fog } from 'three';
+import { Vector3, Vector2, PerspectiveCamera, CameraHelper, Raycaster, Group, Mesh, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, BoxGeometry, Euler, Matrix4, Fog } from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { blocks } from '../textures/blocks.js';
+import { simpleCharacter } from './body/simple'
 
 export class PlayerBase {
-    height = 1.75;
+    height = 2;
     radius = 0.5;
     maxSpeed = 5;
 
@@ -27,6 +28,8 @@ export class PlayerBase {
 
     center_screen = new Vector2();
 
+    character = new Group();
+
     tool = {
         // Group that will contain the tool mesh
         container: new Group(),
@@ -47,6 +50,8 @@ export class PlayerBase {
         // Set raycaster to use layer 0 so it doesn't interact with water mesh on layer 1
         this.raycaster.layers.set(0);
         this.camera.layers.enable(1);
+
+        this.character = new simpleCharacter();
 
         // Wireframe mesh visualizing the player's bounding cylinder
         this.boundsHelper = new Mesh(
@@ -103,6 +108,11 @@ export class PlayerBase {
     updateBoundsHelper() {
         this.boundsHelper.position.copy(this.camera.position);
         this.boundsHelper.position.y -= this.height / 2;
+        
+        this.character.position.copy(this.boundsHelper.position);
+        this.character.position.y -=this.height / 4;
+        this.character.visible = false;
+        this.tool.container.visible = true;
     }
 
     /**

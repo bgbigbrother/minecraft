@@ -21,7 +21,7 @@ export class WorldBaseClass extends Group {
   };
 
   params = {
-    seed: 0,
+    seed: 0,//Math.floor(Math.random() * 10000),
     terrain: {
       scale: 100,
       magnitude: 8,

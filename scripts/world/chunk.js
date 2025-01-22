@@ -2,8 +2,9 @@ import { WorldChunk } from '../worldChunk';
 import { StoreWorldBaseClass } from './store_world';
 
 export class ChunkStoreWorldBaseClass extends StoreWorldBaseClass {
-    constructor() {
+    constructor(models) {
         super();
+        this.models = models;
     }
 
     /**
@@ -13,16 +14,13 @@ export class ChunkStoreWorldBaseClass extends StoreWorldBaseClass {
      */
     generateChunk(x, z) {
         const chunk = new WorldChunk(this.chunkSize, this.params, this.dataStore);
-        chunk.position.set(
-        x * this.chunkSize.width,
-        0,
-        z * this.chunkSize.width);
+        chunk.position.set(x * this.chunkSize.width, 0, z * this.chunkSize.width);
         chunk.userData = { x, z };
 
         if (this.asyncLoading) {
-            requestIdleCallback(chunk.generate.bind(chunk), { timeout: 1000 });
+            requestIdleCallback(chunk.generate.bind(chunk, this.models), { timeout: 1000 });
         } else {
-            chunk.generate();
+            chunk.generate(this.models);
         }
 
         this.add(chunk);
