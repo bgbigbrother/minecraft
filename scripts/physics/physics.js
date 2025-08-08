@@ -1,7 +1,6 @@
 import { Vector3 } from 'three';
 import { blocks } from '../textures/blocks';
 import { Player } from '../player/player';
-import { WorldChunk } from '../worldChunk';
 import { BasePhysics } from './base';
 
 export class Physics extends BasePhysics {

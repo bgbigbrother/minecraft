@@ -1,4 +1,4 @@
-import { WorldChunk } from '../worldChunk';
+import { Chunk } from '../biome/chunk';
 import { StoreWorldBaseClass } from './store_world';
 
 export class ChunkStoreWorldBaseClass extends StoreWorldBaseClass {
@@ -13,7 +13,7 @@ export class ChunkStoreWorldBaseClass extends StoreWorldBaseClass {
      * @param {number} z
      */
     generateChunk(x, z) {
-        const chunk = new WorldChunk(this.chunkSize, this.params, this.dataStore);
+        const chunk = new Chunk(this.chunkSize, this.params, this.dataStore);
         chunk.position.set(x * this.chunkSize.width, 0, z * this.chunkSize.width);
         chunk.userData = { x, z };
 
@@ -43,6 +43,24 @@ export class ChunkStoreWorldBaseClass extends StoreWorldBaseClass {
         const chunkCoords = {
             x: Math.floor(x / this.chunkSize.width),
             z: Math.floor(z / this.chunkSize.width)
+        };
+    
+        const blockCoords = {
+            x: x - this.chunkSize.width * chunkCoords.x,
+            y,
+            z: z - this.chunkSize.width * chunkCoords.z
+        };
+    
+        return {
+            chunk: chunkCoords,
+            block: blockCoords
+        }
+    }
+
+    chunkToWorldCoords(x, y, z) {
+        const chunkCoords = {
+            x: Math.floor(x * this.chunkSize.width),
+            z: Math.floor(z * this.chunkSize.width)
         };
     
         const blockCoords = {

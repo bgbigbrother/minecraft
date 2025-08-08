@@ -16,12 +16,12 @@ export class WorldBaseClass extends Group {
   drawDistance = 3;
 
   chunkSize = {
-    width: 16,
+    width: 32,
     height: 32
   };
 
   params = {
-    seed: 0,//Math.floor(Math.random() * 10000),
+    seed: 1,//Math.floor(Math.random() * 10000),
     terrain: {
       scale: 100,
       magnitude: 8,

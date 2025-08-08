@@ -130,9 +130,13 @@ export class PlayerBase {
             const chunk = intersection.object.parent;
 
             // Get the transformation matrix for the selected block
-            const blockMatrix = new Matrix4();
-            intersection.object.getMatrixAt(intersection.instanceId, blockMatrix);
-
+            let blockMatrix = new Matrix4();
+            if(intersection.object.bindMatrix) {
+                blockMatrix = intersection.object.bindMatrix
+            } else {
+                intersection.object.getMatrixAt(intersection.instanceId, blockMatrix);
+            }
+            
             // Set the selected coordinates to the origin of the chunk,
             // then apply the transformation matrix of the block to get
             // the block coordinates

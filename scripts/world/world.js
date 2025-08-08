@@ -36,7 +36,9 @@ export class World extends EditChunkStoreWorldBaseClass {
       this.generateChunk(chunk.x, chunk.z);
     }
 
-    this.children.forEach(child => child.update(dt))
+    this.children.forEach(child => {
+      child.name === "Chunk" && child.update(dt)
+    });
   }
 
   /**
@@ -102,8 +104,10 @@ export class World extends EditChunkStoreWorldBaseClass {
     });
 
     for (const chunk of chunksToRemove) {
-      chunk.disposeInstances();
-      this.remove(chunk);
+      if (chunk.disposeInstances) {
+        chunk.disposeInstances();
+        this.remove(chunk);
+      }
       // console.log(`Removing chunk at X: ${chunk.userData.x} Z: ${chunk.userData.z}`);
     }
   }
