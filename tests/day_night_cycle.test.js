@@ -12,6 +12,7 @@ describe('DayNightCycle', () => {
   let mockSunMesh;
   let mockMoonMesh;
   let mockAmbientLight;
+  let mockWorld;
   let dayNightCycle;
 
   beforeEach(() => {
@@ -69,6 +70,28 @@ describe('DayNightCycle', () => {
         setHex: jest.fn()
       }
     };
+
+    // Create mock world with chunks containing clouds
+    mockWorld = {
+      children: [
+        {
+          children: [
+            {
+              type: 'Group',
+              children: [
+                {
+                  material: {
+                    color: {
+                      setHex: jest.fn()
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    };
   });
 
   describe('Constructor', () => {
@@ -78,7 +101,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
 
       expect(dayNightCycle).toBeDefined();
@@ -87,6 +111,7 @@ describe('DayNightCycle', () => {
       expect(dayNightCycle.sunMesh).toBe(mockSunMesh);
       expect(dayNightCycle.moonMesh).toBe(mockMoonMesh);
       expect(dayNightCycle.ambientLight).toBe(mockAmbientLight);
+      expect(dayNightCycle.world).toBe(mockWorld);
     });
 
     test('should initialize with default options', () => {
@@ -95,7 +120,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
 
       expect(dayNightCycle.currentTime).toBe(0);
@@ -111,6 +137,7 @@ describe('DayNightCycle', () => {
         mockSunMesh,
         mockMoonMesh,
         mockAmbientLight,
+        mockWorld,
         { startTime: 6000 }
       );
 
@@ -126,6 +153,7 @@ describe('DayNightCycle', () => {
         mockSunMesh,
         mockMoonMesh,
         mockAmbientLight,
+        mockWorld,
         { speed: 50.0 }
       );
 
@@ -134,32 +162,38 @@ describe('DayNightCycle', () => {
 
     test('should throw error if scene is missing', () => {
       expect(() => {
-        new DayNightCycle(null, mockSun, mockSunMesh, mockMoonMesh, mockAmbientLight);
+        new DayNightCycle(null, mockSun, mockSunMesh, mockMoonMesh, mockAmbientLight, mockWorld);
       }).toThrow('DayNightCycle: scene is required');
     });
 
     test('should throw error if sun is missing', () => {
       expect(() => {
-        new DayNightCycle(mockScene, null, mockSunMesh, mockMoonMesh, mockAmbientLight);
+        new DayNightCycle(mockScene, null, mockSunMesh, mockMoonMesh, mockAmbientLight, mockWorld);
       }).toThrow('DayNightCycle: sun (directional light) is required');
     });
 
     test('should throw error if sunMesh is missing', () => {
       expect(() => {
-        new DayNightCycle(mockScene, mockSun, null, mockMoonMesh, mockAmbientLight);
+        new DayNightCycle(mockScene, mockSun, null, mockMoonMesh, mockAmbientLight, mockWorld);
       }).toThrow('DayNightCycle: sunMesh is required');
     });
 
     test('should throw error if moonMesh is missing', () => {
       expect(() => {
-        new DayNightCycle(mockScene, mockSun, mockSunMesh, null, mockAmbientLight);
+        new DayNightCycle(mockScene, mockSun, mockSunMesh, null, mockAmbientLight, mockWorld);
       }).toThrow('DayNightCycle: moonMesh is required');
     });
 
     test('should throw error if ambientLight is missing', () => {
       expect(() => {
-        new DayNightCycle(mockScene, mockSun, mockSunMesh, mockMoonMesh, null);
+        new DayNightCycle(mockScene, mockSun, mockSunMesh, mockMoonMesh, null, mockWorld);
       }).toThrow('DayNightCycle: ambientLight is required');
+    });
+
+    test('should throw error if world is missing', () => {
+      expect(() => {
+        new DayNightCycle(mockScene, mockSun, mockSunMesh, mockMoonMesh, mockAmbientLight, null);
+      }).toThrow('DayNightCycle: world is required');
     });
   });
 
@@ -170,7 +204,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
     });
 
@@ -212,6 +247,7 @@ describe('DayNightCycle', () => {
         mockSunMesh,
         mockMoonMesh,
         mockAmbientLight,
+        mockWorld,
         { startTime: 12000 }
       );
 
@@ -226,7 +262,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
       jest.spyOn(console, 'warn').mockImplementation(() => {});
     });
@@ -283,7 +320,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
 
       dayNightCycle.setSpeed(100.0);
@@ -298,7 +336,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
     });
 
@@ -343,7 +382,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
     });
 
@@ -377,6 +417,7 @@ describe('DayNightCycle', () => {
         mockSunMesh,
         mockMoonMesh,
         mockAmbientLight,
+        mockWorld,
         { startTime: 0, speed: 20.0 }
       );
     });
@@ -443,7 +484,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
     });
 
@@ -487,7 +529,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
     });
 
@@ -535,7 +578,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
     });
 
@@ -590,6 +634,7 @@ describe('DayNightCycle', () => {
         mockSunMesh,
         mockMoonMesh,
         mockAmbientLight,
+        mockWorld,
         { startTime: 0, speed: 100.0 }
       );
 
@@ -609,7 +654,8 @@ describe('DayNightCycle', () => {
         mockSun,
         mockSunMesh,
         mockMoonMesh,
-        mockAmbientLight
+        mockAmbientLight,
+        mockWorld
       );
 
       const phases = new Set();

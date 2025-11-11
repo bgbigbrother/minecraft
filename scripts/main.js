@@ -35,7 +35,7 @@ new ModelLoader((models) => {
     setupLights();
     
     // Create DayNightCycle instance with all required parameters
-    const dayNightCycle = new DayNightCycle(scene, sun, sunMesh, moonMesh, ambientLight);
+    const dayNightCycle = new DayNightCycle(scene, sun, sunMesh, moonMesh, ambientLight, world);
     
     animate.call(this, player, world, dayNightCycle);
 });

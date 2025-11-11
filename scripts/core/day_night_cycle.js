@@ -29,17 +29,19 @@ export class DayNightCycle {
    * @param {THREE.Mesh} sunMesh - Visual mesh for the sun
    * @param {THREE.Mesh} moonMesh - Visual mesh for the moon
    * @param {THREE.AmbientLight} ambientLight - The ambient light object
+   * @param {Object} world - The world object for accessing cloud chunks
    * @param {Object} options - Configuration options
    * @param {number} options.speed - Time progression multiplier (default: 1.0)
    * @param {number} options.startTime - Initial time value (default: 0)
    */
-  constructor(scene, sun, sunMesh, moonMesh, ambientLight, options = {}) {
+  constructor(scene, sun, sunMesh, moonMesh, ambientLight, world, options = {}) {
     // Validate required dependencies
     if (!scene) throw new Error('DayNightCycle: scene is required');
     if (!sun) throw new Error('DayNightCycle: sun (directional light) is required');
     if (!sunMesh) throw new Error('DayNightCycle: sunMesh is required');
     if (!moonMesh) throw new Error('DayNightCycle: moonMesh is required');
     if (!ambientLight) throw new Error('DayNightCycle: ambientLight is required');
+    if (!world) throw new Error('DayNightCycle: world is required');
 
     // Store references to scene and lighting objects
     this.scene = scene;
@@ -47,10 +49,11 @@ export class DayNightCycle {
     this.sunMesh = sunMesh;
     this.moonMesh = moonMesh;
     this.ambientLight = ambientLight;
+    this.world = world;
 
     // Initialize time state properties
     this.currentTime = options.startTime || 0;
-    this.speed = options.speed || 1.0;
+    this.speed = options.speed || 20.0;
     this.isDay = this.currentTime < 12000;
     this.phase = this._calculatePhase(this.currentTime);
   }
@@ -90,6 +93,7 @@ export class DayNightCycle {
     this._updateCelestialBodies();
     this._updateLighting();
     this._updateSkyColors();
+    this._updateCloudColors();
   }
 
   /**
@@ -302,6 +306,50 @@ export class DayNightCycle {
     // Update fog color if fog exists
     if (this.scene.fog && this.scene.fog.color) {
       this.scene.fog.color.setHex(interpolatedColor);
+    }
+  }
+
+  /**
+   * Updates cloud colors based on time of day
+   * Interpolates between bright white at noon and dark gray at midnight
+   * @private
+   */
+  _updateCloudColors() {
+    // Define cloud color values
+    const CLOUD_BRIGHT = 0xffffff; // Bright white at noon
+    const CLOUD_DARK = 0x404040;   // Dark gray at midnight
+
+    // Calculate interpolation factor based on time (same as lighting)
+    // Use cosine wave for smooth transition: 1 at noon (6000), -1 at midnight (18000)
+    const timeAngle = (this.currentTime / 24000) * Math.PI * 2;
+    
+    // Shift by 90 degrees (π/2) to align with our time system
+    const shiftedAngle = timeAngle - Math.PI / 2;
+    const shiftedCos = Math.cos(shiftedAngle);
+    
+    // Convert to 0-1 range (0 = midnight/dark, 1 = noon/bright)
+    const colorFactor = (shiftedCos + 1) / 2;
+
+    // Interpolate between dark and bright cloud colors
+    const cloudColor = this._interpolateColor(CLOUD_DARK, CLOUD_BRIGHT, colorFactor);
+
+    // Iterate through world chunks and update cloud materials
+    if (this.world && this.world.children) {
+      this.world.children.forEach(chunk => {
+        // Each chunk has clouds as a child
+        chunk.children.forEach(child => {
+          // Check if this is a Clouds group (it's a THREE.Group)
+          if (child.type === 'Group' && child.children.length > 0) {
+            // Clouds contain mesh children with materials
+            child.children.forEach(cloudMesh => {
+              if (cloudMesh.material && cloudMesh.material.color) {
+                // Update the cloud material color while preserving other properties
+                cloudMesh.material.color.setHex(cloudColor);
+              }
+            });
+          }
+        });
+      });
     }
   }
 }
