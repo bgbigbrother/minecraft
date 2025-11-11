@@ -194,9 +194,12 @@ export class PlayerBase {
     applyInputs(dt) {
         // Only process input when pointer is locked (first-person mode active)
         if (this.controls.isLocked === true) {
+            // Determine speed multiplier: 3x for sprint mode, 1.5x for shift sprint, 1x for normal
+            const speedMultiplier = this.sprintMode ? 3 : (this.sprinting ? 1.5 : 1);
+            
             // Apply sprint multiplier to horizontal velocity
-            this.velocity.x = this.input.x * (this.sprinting ? 1.5 : 1);
-            this.velocity.z = this.input.z * (this.sprinting ? 1.5 : 1);
+            this.velocity.x = this.input.x * speedMultiplier;
+            this.velocity.z = this.input.z * speedMultiplier;
             
             // Move player based on camera direction
             this.controls.moveRight(this.velocity.x * dt);

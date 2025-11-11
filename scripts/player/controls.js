@@ -9,6 +9,11 @@ export class ControllsPlayerBase extends PlayerBase {
     constructor() {
         super();
 
+        // Sprint mode tracking
+        this.lastWKeyPress = 0; // Timestamp of last W key press
+        this.doubleTapWindow = 300; // Time window for double-tap detection (ms)
+        this.sprintMode = false; // Whether sprint mode is active
+
         // Set up pointer lock event listeners
         // Hide/show instructions overlay based on pointer lock state
         this.controls.addEventListener('lock', this.onCameraLock.bind(this));
@@ -47,6 +52,7 @@ export class ControllsPlayerBase extends PlayerBase {
         switch (event.code) {
         case 'KeyW':
             this.input.z = 0; // Stop forward movement
+            this.sprintMode = false; // Deactivate sprint mode when W is released
             break;
         case 'KeyA':
             this.input.x = 0; // Stop left movement
@@ -102,6 +108,16 @@ export class ControllsPlayerBase extends PlayerBase {
             
             // WASD movement keys
             case 'KeyW':
+                // Double-tap detection for sprint mode
+                const currentTime = performance.now();
+                const timeSinceLastPress = currentTime - this.lastWKeyPress;
+                
+                if (timeSinceLastPress < this.doubleTapWindow && timeSinceLastPress > 0) {
+                    // Double-tap detected - activate sprint mode
+                    this.sprintMode = true;
+                }
+                
+                this.lastWKeyPress = currentTime;
                 this.input.z = this.maxSpeed; // Move forward
                 break;
             case 'KeyA':
