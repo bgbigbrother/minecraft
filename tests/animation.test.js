@@ -4,11 +4,13 @@ import { describe, test, expect, jest, beforeEach } from '@jest/globals';
 jest.mock('../scripts/core/sun', () => {
   const mockSunPosition = {
     copy: jest.fn().mockReturnThis(),
-    sub: jest.fn().mockReturnThis()
+    sub: jest.fn().mockReturnThis(),
+    add: jest.fn().mockReturnThis()
   };
   const mockSunMeshPosition = {
     copy: jest.fn().mockReturnThis(),
-    sub: jest.fn().mockReturnThis()
+    sub: jest.fn().mockReturnThis(),
+    add: jest.fn().mockReturnThis()
   };
   return {
     sun: {
@@ -17,6 +19,19 @@ jest.mock('../scripts/core/sun', () => {
     },
     sunMesh: {
       position: mockSunMeshPosition
+    }
+  };
+});
+
+jest.mock('../scripts/core/moon', () => {
+  const mockMoonMeshPosition = {
+    copy: jest.fn().mockReturnThis(),
+    sub: jest.fn().mockReturnThis(),
+    add: jest.fn().mockReturnThis()
+  };
+  return {
+    moonMesh: {
+      position: mockMoonMeshPosition
     }
   };
 });
@@ -58,9 +73,10 @@ jest.mock('../scripts/core/scene', () => ({
 describe('Animation Module', () => {
   let mockPlayer;
   let mockWorld;
+  let mockDayNightCycle;
   let mockAudio;
   let animate;
-  let sun, sunMesh, orbitCamera, controls, renderer, stats, scene;
+  let sun, sunMesh, moonMesh, orbitCamera, controls, renderer, stats, scene;
 
   beforeEach(async () => {
     // Clear module cache to get fresh imports
@@ -80,6 +96,11 @@ describe('Animation Module', () => {
     mockWorld = {
       update: jest.fn(),
       chunkSize: { height: 32 }
+    };
+
+    // Mock day/night cycle
+    mockDayNightCycle = {
+      update: jest.fn()
     };
 
     // Mock audio element
@@ -105,6 +126,9 @@ describe('Animation Module', () => {
     const sunModule = await import('../scripts/core/sun');
     sun = sunModule.sun;
     sunMesh = sunModule.sunMesh;
+    
+    const moonModule = await import('../scripts/core/moon');
+    moonMesh = moonModule.moonMesh;
     
     const cameraModule = await import('../scripts/core/camera');
     orbitCamera = cameraModule.orbitCamera;
@@ -132,7 +156,7 @@ describe('Animation Module', () => {
   });
 
   test('should schedule next frame with requestAnimationFrame', () => {
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(global.requestAnimationFrame).toHaveBeenCalled();
   });
@@ -140,7 +164,7 @@ describe('Animation Module', () => {
   test('should update player and world when controls are locked', () => {
     mockPlayer.controls.isLocked = true;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(mockPlayer.update).toHaveBeenCalled();
     expect(mockWorld.update).toHaveBeenCalled();
@@ -148,10 +172,19 @@ describe('Animation Module', () => {
     expect(mockWorld.update).toHaveBeenCalledWith(expect.any(Number), mockPlayer);
   });
 
+  test('should update day/night cycle when controls are locked', () => {
+    mockPlayer.controls.isLocked = true;
+    
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
+    
+    expect(mockDayNightCycle.update).toHaveBeenCalled();
+    expect(mockDayNightCycle.update).toHaveBeenCalledWith(expect.any(Number));
+  });
+
   test('should play audio when controls are locked', () => {
     mockPlayer.controls.isLocked = true;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(document.querySelector).toHaveBeenCalledWith('audio');
     expect(mockAudio.play).toHaveBeenCalled();
@@ -160,26 +193,32 @@ describe('Animation Module', () => {
   test('should update sun position relative to player', () => {
     mockPlayer.controls.isLocked = true;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
-    expect(sun.position.copy).toHaveBeenCalledWith(mockPlayer.camera.position);
-    expect(sun.position.sub).toHaveBeenCalled();
+    expect(sun.position.add).toHaveBeenCalledWith(mockPlayer.camera.position);
     expect(sun.target.position.copy).toHaveBeenCalledWith(mockPlayer.camera.position);
   });
 
   test('should update sunMesh position relative to player', () => {
     mockPlayer.controls.isLocked = true;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
-    expect(sunMesh.position.copy).toHaveBeenCalledWith(mockPlayer.camera.position);
-    expect(sunMesh.position.sub).toHaveBeenCalled();
+    expect(sunMesh.position.add).toHaveBeenCalledWith(mockPlayer.camera.position);
+  });
+
+  test('should update moonMesh position relative to player', () => {
+    mockPlayer.controls.isLocked = true;
+    
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
+    
+    expect(moonMesh.position.add).toHaveBeenCalledWith(mockPlayer.camera.position);
   });
 
   test('should update orbit camera to track player', () => {
     mockPlayer.controls.isLocked = true;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(orbitCamera.position.copy).toHaveBeenCalled();
     expect(orbitCamera.position.add).toHaveBeenCalled();
@@ -189,7 +228,7 @@ describe('Animation Module', () => {
   test('should render scene with player camera when controls are locked', () => {
     mockPlayer.controls.isLocked = true;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(renderer.render).toHaveBeenCalledWith(scene, mockPlayer.camera);
   });
@@ -197,7 +236,7 @@ describe('Animation Module', () => {
   test('should pause audio when controls are unlocked', () => {
     mockPlayer.controls.isLocked = false;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(mockAudio.pause).toHaveBeenCalled();
     expect(mockAudio.play).not.toHaveBeenCalled();
@@ -207,7 +246,7 @@ describe('Animation Module', () => {
     mockPlayer.controls.isLocked = false;
     mockPlayer.character.visible = false;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(mockPlayer.character.visible).toBe(true);
   });
@@ -216,7 +255,7 @@ describe('Animation Module', () => {
     mockPlayer.controls.isLocked = false;
     mockPlayer.tool.container.visible = true;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(mockPlayer.tool.container.visible).toBe(false);
   });
@@ -224,7 +263,7 @@ describe('Animation Module', () => {
   test('should render scene with orbit camera when controls are unlocked', () => {
     mockPlayer.controls.isLocked = false;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(renderer.render).toHaveBeenCalledWith(scene, orbitCamera);
   });
@@ -232,14 +271,22 @@ describe('Animation Module', () => {
   test('should not update player and world when controls are unlocked', () => {
     mockPlayer.controls.isLocked = false;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(mockPlayer.update).not.toHaveBeenCalled();
     expect(mockWorld.update).not.toHaveBeenCalled();
   });
 
+  test('should not update day/night cycle when controls are unlocked', () => {
+    mockPlayer.controls.isLocked = false;
+    
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
+    
+    expect(mockDayNightCycle.update).not.toHaveBeenCalled();
+  });
+
   test('should update stats every frame', () => {
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(stats.update).toHaveBeenCalled();
   });
@@ -247,11 +294,12 @@ describe('Animation Module', () => {
   test('should calculate delta time and pass to update methods', () => {
     mockPlayer.controls.isLocked = true;
     
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     // Verify that update methods are called with a delta time (number) and correct objects
     expect(mockPlayer.update).toHaveBeenCalledWith(expect.any(Number), mockWorld);
     expect(mockWorld.update).toHaveBeenCalledWith(expect.any(Number), mockPlayer);
+    expect(mockDayNightCycle.update).toHaveBeenCalledWith(expect.any(Number));
     
     // Verify delta time is a reasonable value (between 0 and 1 second)
     const deltaTime = mockPlayer.update.mock.calls[0][0];
@@ -268,7 +316,7 @@ describe('Animation Module', () => {
       }
     });
 
-    animate(mockPlayer, mockWorld);
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(global.requestAnimationFrame).toHaveBeenCalledTimes(3);
   });

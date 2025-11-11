@@ -6,8 +6,8 @@ describe('Core Scene', () => {
     
     expect(scene).toBeDefined();
     expect(scene.fog).toBeDefined();
-    expect(scene.fog.near).toBe(50);
-    expect(scene.fog.far).toBe(75);
+    expect(scene.fog.near).toBe(100);
+    expect(scene.fog.far).toBe(125);
   });
 });
 

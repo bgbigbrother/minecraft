@@ -5,9 +5,12 @@ import { Physics } from './physics/physics';
 import { setupUI } from './ui';
 import { scene } from './core/scene';
 import { onResize } from './core/resize';
-import { setupLights } from './core/lights';
+import { setupLights, ambientLight } from './core/lights';
 import { animate } from './core/animation';
 import { ModelLoader } from './mobs/model_loader';
+import { DayNightCycle } from './core/day_night_cycle';
+import { sun, sunMesh } from './core/sun';
+import { moonMesh } from './core/moon';
 
 /**
  * Main application entry point
@@ -30,5 +33,9 @@ new ModelLoader((models) => {
     // Initialize UI controls, lighting, and start the render loop
     setupUI(world, player, physics, scene);
     setupLights();
-    animate.call(this, player, world);
+    
+    // Create DayNightCycle instance with all required parameters
+    const dayNightCycle = new DayNightCycle(scene, sun, sunMesh, moonMesh, ambientLight);
+    
+    animate.call(this, player, world, dayNightCycle);
 });

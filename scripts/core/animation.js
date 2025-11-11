@@ -1,5 +1,6 @@
 import { Vector3, PCFSoftShadowMap } from 'three';
 import { sun, sunMesh } from './sun';
+import { moonMesh } from './moon';
 import { orbitCamera } from './camera';
 import { controls } from './controls';
 import { renderer } from './renderer';
@@ -11,9 +12,9 @@ import { scene } from './scene';
  * Called every frame to update game state and render the scene
  */
 let previousTime = performance.now();
-export function animate(player, world) {
+export function animate(player, world, dayNightCycle) {
   // Schedule next frame
-  requestAnimationFrame(animate.bind(this, player, world));
+  requestAnimationFrame(animate.bind(this, player, world, dayNightCycle));
 
   // Calculate delta time (time since last frame) in seconds
   const currentTime = performance.now();
@@ -28,15 +29,21 @@ export function animate(player, world) {
     player.update(dt, world);
     world.update(dt, player);
 
+    // Update day/night cycle (time progression, lighting, sky colors, celestial bodies)
+    dayNightCycle.update(dt);
+
+    // Adjust celestial body positions relative to player camera (preserve existing offset behavior)
+    const offset = new Vector3(-world.chunkSize.height, -world.chunkSize.height, -world.chunkSize.height);
+    
     // Position the sun relative to the player to maintain consistent lighting
-    // Need to adjust both the position and target of the sun to keep the same sun angle
-    sun.position.copy(player.camera.position);
-    sun.position.sub(new Vector3(-world.chunkSize.height, -world.chunkSize.height, -world.chunkSize.height));
+    sun.position.add(player.camera.position);
     sun.target.position.copy(player.camera.position);
     
-    // Update visual sun mesh position
-    sunMesh.position.copy(player.camera.position);
-    sunMesh.position.sub(new Vector3(-world.chunkSize.height, -world.chunkSize.height, -world.chunkSize.height));
+    // Update visual sun mesh position relative to player
+    sunMesh.position.add(player.camera.position);
+    
+    // Update visual moon mesh position relative to player
+    moonMesh.position.add(player.camera.position);
 
     // Update orbit camera position to track player (for debug camera mode)
     orbitCamera.position.copy(player.position).add(new Vector3(16, 16, 16));

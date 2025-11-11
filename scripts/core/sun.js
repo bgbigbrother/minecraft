@@ -24,7 +24,7 @@ sun.shadow.mapSize = new Vector2(512, 512); // Shadow map resolution
  * Visual representation of the sun
  * A glowing sphere mesh that shows where the sun is in the sky
  */
-const sunGeometry = new SphereGeometry(2, 32, 32); // Sphere with radius 2
+const sunGeometry = new SphereGeometry(10, 32, 32); // Sphere with radius 2
 const sunMaterial = new MeshBasicMaterial({ color: 0xffdd00 }); // Bright yellow (unaffected by lighting)
 export const sunMesh = new Mesh(sunGeometry, sunMaterial);
 sunMesh.position.copy(sun.position); // Position the sun mesh at the light's position
