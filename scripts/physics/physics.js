@@ -3,51 +3,80 @@ import { blocks } from '../textures/blocks';
 import { Player } from '../player/player';
 import { BasePhysics } from './base';
 
+/**
+ * Physics system for player collision detection and response
+ * Uses broad-phase and narrow-phase collision detection
+ * Implements cylinder-box collision for player-block interactions
+ */
 export class Physics extends BasePhysics {
   constructor(scene) {
     super(scene);
   }
 
   /**
-   * Moves the physics simulation forward in time by 'dt'
-   * @param {number} dt 
-   * @param {Player} player
-   * @param {WorldChunk} world
+   * Advances the physics simulation by delta time
+   * Uses fixed timestep for consistent physics regardless of frame rate
+   * @param {number} dt - Delta time in seconds since last update
+   * @param {Player} player - The player object
+   * @param {World} world - The world object
    */
   update(dt, player, world) {
+    // Accumulate time for fixed timestep simulation
     this.accumulator += dt;
+    
+    // Run physics updates in fixed timesteps
     while (this.accumulator >= this.stepSize) {
+      // Apply gravity
       player.velocity.y -= this.gravity * this.stepSize;
+      
+      // Apply player input (movement)
       player.applyInputs(this.stepSize);
+      
+      // Check and resolve collisions
       this.detectCollisions(player, world);
+      
+      // Consume one timestep from accumulator
       this.accumulator -= this.stepSize;
     }
   }
 
   /**
-   * Main function for collision detection
+   * Main collision detection pipeline
+   * 1. Broad phase: Find potential collision candidates
+   * 2. Narrow phase: Determine actual collisions
+   * 3. Resolve: Adjust player position and velocity
+   * @param {Player} player - The player object
+   * @param {World} world - The world object
    */
   detectCollisions(player, world) {
-    player.onGround = false;
-    this.helpers.clear();
+    player.onGround = false; // Reset ground state (will be set if collision below)
+    this.helpers.clear(); // Clear debug visualization from previous frame
 
+    // Find all blocks that might be colliding with player
     const candidates = this.broadPhase(player, world);
+    
+    // Determine which candidates are actually colliding
     const collisions = this.narrowPhase(candidates, player);
 
+    // Resolve all detected collisions
     if (collisions.length > 0) {
       this.resolveCollisions(collisions, player);
     }
   }
 
   /**
-   * Performs a rough search against the world to return all
-   * possible blocks the player may be colliding with
-   * @returns {{ id: number, instanceId: number }[]}
+   * Broad phase collision detection
+   * Quickly finds all solid blocks near the player using AABB (axis-aligned bounding box)
+   * This is a coarse filter - not all candidates will actually be colliding
+   * @param {Player} player - The player object
+   * @param {World} world - The world object
+   * @returns {Array<{x: number, y: number, z: number}>} Array of block positions
    */
   broadPhase(player, world) {
     const candidates = [];
 
-    // Get the block extents of the player
+    // Calculate the bounding box around the player's collision cylinder
+    // This gives us the range of blocks that could possibly be colliding
     const minX = Math.floor(player.position.x - player.radius);
     const maxX = Math.ceil(player.position.x + player.radius);
     const minY = Math.floor(player.position.y - player.height);
@@ -55,16 +84,17 @@ export class Physics extends BasePhysics {
     const minZ = Math.floor(player.position.z - player.radius);
     const maxZ = Math.ceil(player.position.z + player.radius);
 
-    // Loop through all blocks next to the block the center of the player is in
-    // If they aren't empty, then they are a possible collision candidate
+    // Check all blocks within the bounding box
     for (let x = minX; x <= maxX; x++) {
       for (let y = minY; y <= maxY; y++) {
         for (let z = minZ; z <= maxZ; z++) {
           const blockId = world.getBlock(x, y, z)?.id;
+          
+          // Only consider solid blocks (not air/empty)
           if (blockId && blockId !== blocks.empty.id) {
             const block = { x, y, z };
             candidates.push(block);
-            this.addCollisionHelper(block);
+            this.addCollisionHelper(block); // Add debug visualization
           }
         }
       }
