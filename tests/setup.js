@@ -50,8 +50,22 @@ global.THREE = {
     add(obj) {
       this.children.push(obj);
     }
+    remove(obj) {
+      const index = this.children.indexOf(obj);
+      if (index > -1) this.children.splice(index, 1);
+    }
     clear() {
       this.children = [];
+    }
+    traverse(callback) {
+      callback(this);
+      this.children.forEach(child => {
+        if (child.traverse) {
+          child.traverse(callback);
+        } else {
+          callback(child);
+        }
+      });
     }
   },
   DirectionalLight: class DirectionalLight {

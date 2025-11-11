@@ -23,6 +23,33 @@ export class Vector3 {
     this.z = z;
     return this;
   }
+  multiplyScalar(scalar) {
+    this.x *= scalar;
+    this.y *= scalar;
+    this.z *= scalar;
+    return this;
+  }
+  normalize() {
+    const length = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+    if (length > 0) {
+      this.x /= length;
+      this.y /= length;
+      this.z /= length;
+    }
+    return this;
+  }
+  dot(v) {
+    return this.x * v.x + this.y * v.y + this.z * v.z;
+  }
+  negate() {
+    this.x = -this.x;
+    this.y = -this.y;
+    this.z = -this.z;
+    return this;
+  }
+  equals(v) {
+    return this.x === v.x && this.y === v.y && this.z === v.z;
+  }
   applyEuler() { return this; }
   applyMatrix4() { return this; }
   clone() { return new Vector3(this.x, this.y, this.z); }
@@ -82,6 +109,16 @@ export class Group {
   }
   clear() {
     this.children = [];
+  }
+  traverse(callback) {
+    callback(this);
+    this.children.forEach(child => {
+      if (child.traverse) {
+        child.traverse(callback);
+      } else {
+        callback(child);
+      }
+    });
   }
 }
 

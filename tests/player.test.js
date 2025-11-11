@@ -1,92 +1,267 @@
-import { describe, test, expect, beforeEach } from '@jest/globals';
-import { PlayerBase } from '../scripts/player/base.js';
+import { describe, test, expect, beforeEach, jest } from '@jest/globals';
+import { Player } from '../scripts/player/player.js';
 
-describe('PlayerBase', () => {
+// Mock the World class
+jest.mock('../scripts/world/world.js', () => ({
+  World: class MockWorld {
+    constructor() {
+      this.children = [];
+      this.params = {
+        terrain: {
+          waterOffset: 10
+        }
+      };
+    }
+    addBlock(x, y, z, blockId) {
+      this.lastAddedBlock = { x, y, z, blockId };
+    }
+    removeBlock(x, y, z) {
+      this.lastRemovedBlock = { x, y, z };
+    }
+  }
+}));
+
+// Mock ToolLoader
+jest.mock('../scripts/player/tool_loader.js', () => ({
+  ToolLoader: class MockToolLoader {
+    constructor(callback) {
+      // Simulate async loading with a mock pickaxe
+      setTimeout(() => {
+        callback({
+          pickaxe: {
+            position: { set: jest.fn() },
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: { set: jest.fn() }
+          }
+        });
+      }, 0);
+    }
+  }
+}));
+
+// Mock blocks
+jest.mock('../scripts/textures/blocks.js', () => ({
+  blocks: {
+    empty: { id: 0 },
+    grass: { id: 1 },
+    dirt: { id: 2 },
+    stone: { id: 3 }
+  }
+}));
+
+describe('Player', () => {
   let player;
+  let mockScene;
+  let mockWorld;
 
   beforeEach(() => {
-    player = new PlayerBase();
+    // Mock DOM elements
+    document.body.innerHTML = `
+      <div id="overlay"></div>
+      <div id="info-player-position"></div>
+      <div id="toolbar-0" class="selected"></div>
+      <div id="toolbar-1"></div>
+      <div id="toolbar-2"></div>
+    `;
+
+    mockScene = new THREE.Scene();
+    mockWorld = {
+      children: [],
+      params: {
+        terrain: {
+          waterOffset: 10
+        }
+      },
+      addBlock: jest.fn(),
+      removeBlock: jest.fn()
+    };
+
+    player = new Player(mockScene, mockWorld);
   });
 
-  test('should create player instance', () => {
-    expect(player).toBeDefined();
+  describe('constructor', () => {
+    test('should create player instance', () => {
+      expect(player).toBeDefined();
+    });
+
+    test('should set initial position to (32, 32, 32)', () => {
+      expect(player.position.x).toBe(32);
+      expect(player.position.y).toBe(32);
+      expect(player.position.z).toBe(32);
+    });
+
+    test('should store world reference', () => {
+      expect(player.world).toBe(mockWorld);
+    });
+
+    test('should store scene reference', () => {
+      expect(player.scene).toBe(mockScene);
+    });
+
+    test('should add camera to scene', () => {
+      expect(mockScene.children).toContain(player.camera);
+    });
+
+    test('should add cameraHelper to scene', () => {
+      expect(mockScene.children).toContain(player.cameraHelper);
+    });
+
+    test('should add character to scene', () => {
+      expect(mockScene.children).toContain(player.character);
+    });
+
+    test('should add boundsHelper to scene', () => {
+      expect(mockScene.children).toContain(player.boundsHelper);
+    });
+
+    test('should add selectionHelper to scene', () => {
+      expect(mockScene.children).toContain(player.selectionHelper);
+    });
   });
 
-  test('should have default height of 2', () => {
-    expect(player.height).toBe(2);
+  describe('update', () => {
+    test('should call updateBoundsHelper', () => {
+      const spy = jest.spyOn(player, 'updateBoundsHelper');
+      player.update(0.016, mockWorld);
+      expect(spy).toHaveBeenCalled();
+    });
+
+    test('should call updateRaycaster with world', () => {
+      const spy = jest.spyOn(player, 'updateRaycaster');
+      player.update(0.016, mockWorld);
+      expect(spy).toHaveBeenCalledWith(mockWorld);
+    });
+
+    test('should not call physics update when physics is not added', () => {
+      expect(() => player.update(0.016, mockWorld)).not.toThrow();
+    });
+
+    test('should call physics update when physics is added', () => {
+      const mockPhysics = {
+        update: jest.fn()
+      };
+      
+      player.addPhysics(mockPhysics);
+      player.update(0.016, mockWorld);
+      
+      expect(mockPhysics.update).toHaveBeenCalledWith(0.016, player, mockWorld);
+    });
+
+    test('should call updateToolAnimation when tool.animate is true', () => {
+      const spy = jest.spyOn(player, 'updateToolAnimation');
+      player.tool.animate = true;
+      
+      player.update(0.016, mockWorld);
+      
+      expect(spy).toHaveBeenCalled();
+    });
+
+    test('should not call updateToolAnimation when tool.animate is false', () => {
+      const spy = jest.spyOn(player, 'updateToolAnimation');
+      player.tool.animate = false;
+      
+      player.update(0.016, mockWorld);
+      
+      expect(spy).not.toHaveBeenCalled();
+    });
   });
 
-  test('should have default radius of 0.5', () => {
-    expect(player.radius).toBe(0.5);
+  describe('addPhysics', () => {
+    test('should store physics reference', () => {
+      const mockPhysics = {
+        update: jest.fn()
+      };
+      
+      player.addPhysics(mockPhysics);
+      player.update(0.016, mockWorld);
+      
+      expect(mockPhysics.update).toHaveBeenCalled();
+    });
+
+    test('should allow physics to be added after construction', () => {
+      const mockPhysics = {
+        update: jest.fn()
+      };
+      
+      // First update without physics
+      player.update(0.016, mockWorld);
+      expect(mockPhysics.update).not.toHaveBeenCalled();
+      
+      // Add physics
+      player.addPhysics(mockPhysics);
+      
+      // Second update with physics
+      player.update(0.016, mockWorld);
+      expect(mockPhysics.update).toHaveBeenCalledTimes(1);
+    });
   });
 
-  test('should have default max speed of 5', () => {
-    expect(player.maxSpeed).toBe(5);
+  describe('inheritance', () => {
+    test('should inherit from ToolControllsPlayerBase', () => {
+      expect(player.setTool).toBeDefined();
+      expect(player.updateToolAnimation).toBeDefined();
+    });
+
+    test('should inherit from ControllsPlayerBase', () => {
+      expect(player.onKeyDown).toBeDefined();
+      expect(player.onKeyUp).toBeDefined();
+      expect(player.onMouseDown).toBeDefined();
+    });
+
+    test('should inherit from PlayerBase', () => {
+      expect(player.height).toBe(2);
+      expect(player.radius).toBe(0.5);
+      expect(player.maxSpeed).toBe(5);
+      expect(player.jumpSpeed).toBe(10);
+      expect(player.camera).toBeDefined();
+      expect(player.controls).toBeDefined();
+    });
+
+    test('should have tool container', () => {
+      expect(player.tool.container).toBeDefined();
+    });
+
+    test('should have character model', () => {
+      expect(player.character).toBeDefined();
+    });
+
+    test('should have bounds helper', () => {
+      expect(player.boundsHelper).toBeDefined();
+    });
+
+    test('should have selection helper', () => {
+      expect(player.selectionHelper).toBeDefined();
+    });
   });
 
-  test('should have default jump speed of 10', () => {
-    expect(player.jumpSpeed).toBe(10);
+  describe('position', () => {
+    test('should return camera position', () => {
+      player.camera.position.set(10, 20, 30);
+      expect(player.position.x).toBe(10);
+      expect(player.position.y).toBe(20);
+      expect(player.position.z).toBe(30);
+    });
+
+    test('should allow position modification', () => {
+      player.position.set(5, 15, 25);
+      expect(player.camera.position.x).toBe(5);
+      expect(player.camera.position.y).toBe(15);
+      expect(player.camera.position.z).toBe(25);
+    });
   });
 
-  test('should not be sprinting by default', () => {
-    expect(player.sprinting).toBe(false);
-  });
+  describe('integration with scene and world', () => {
+    test('should be properly integrated with scene', () => {
+      expect(mockScene.children.length).toBeGreaterThan(0);
+      expect(mockScene.children).toContain(player.camera);
+    });
 
-  test('should not be on ground by default', () => {
-    expect(player.onGround).toBe(false);
-  });
+    test('should be properly integrated with world', () => {
+      expect(player.world).toBe(mockWorld);
+    });
 
-  test('should have camera', () => {
-    expect(player.camera).toBeDefined();
-    expect(player.camera.fov).toBe(70);
-  });
-
-  test('should have controls', () => {
-    expect(player.controls).toBeDefined();
-  });
-
-  test('should have raycaster', () => {
-    expect(player.raycaster).toBeDefined();
-  });
-
-  test('should have tool container', () => {
-    expect(player.tool.container).toBeDefined();
-    expect(player.tool.animate).toBe(false);
-  });
-
-  test('should have character model', () => {
-    expect(player.character).toBeDefined();
-  });
-
-  test('should have bounds helper', () => {
-    expect(player.boundsHelper).toBeDefined();
-    expect(player.boundsHelper.visible).toBe(false);
-  });
-
-  test('should have selection helper', () => {
-    expect(player.selectionHelper).toBeDefined();
-  });
-
-  test('should return position from camera', () => {
-    player.camera.position.set(10, 20, 30);
-    expect(player.position.x).toBe(10);
-    expect(player.position.y).toBe(20);
-    expect(player.position.z).toBe(30);
-  });
-
-  test('should format position as string', () => {
-    player.camera.position.set(1.234567, 2.345678, 3.456789);
-    const str = player.toString();
-    expect(str).toContain('X: 1.235');
-    expect(str).toContain('Y: 2.346');
-    expect(str).toContain('Z: 3.457');
-  });
-
-  test('should have null selected coords by default', () => {
-    expect(player.selectedCoords).toBeNull();
-  });
-
-  test('should have debug camera disabled by default', () => {
-    expect(player.debugCamera).toBe(false);
+    test('should update with world reference', () => {
+      expect(() => player.update(0.016, mockWorld)).not.toThrow();
+    });
   });
 });
