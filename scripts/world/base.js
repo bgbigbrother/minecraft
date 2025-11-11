@@ -40,7 +40,8 @@ export class WorldBaseClass extends Group {
       scale: 100,       // Noise scale (larger = smoother terrain)
       magnitude: 8,     // Height variation multiplier
       offset: 6,        // Base terrain height
-      waterOffset: 4    // Water level height
+      waterOffset: 4,   // Water level height (deprecated, use waterLevel)
+      waterLevel: 4    // Y-coordinate below which water fills empty blocks
     },
     // Biome distribution parameters
     biomes: {

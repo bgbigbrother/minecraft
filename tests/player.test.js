@@ -138,7 +138,8 @@ describe('Player', () => {
 
     test('should call physics update when physics is added', () => {
       const mockPhysics = {
-        update: jest.fn()
+        update: jest.fn(),
+        isPlayerInWater: jest.fn().mockReturnValue(false)
       };
       
       player.addPhysics(mockPhysics);
@@ -169,7 +170,8 @@ describe('Player', () => {
   describe('addPhysics', () => {
     test('should store physics reference', () => {
       const mockPhysics = {
-        update: jest.fn()
+        update: jest.fn(),
+        isPlayerInWater: jest.fn().mockReturnValue(false)
       };
       
       player.addPhysics(mockPhysics);
@@ -180,7 +182,8 @@ describe('Player', () => {
 
     test('should allow physics to be added after construction', () => {
       const mockPhysics = {
-        update: jest.fn()
+        update: jest.fn(),
+        isPlayerInWater: jest.fn().mockReturnValue(false)
       };
       
       // First update without physics

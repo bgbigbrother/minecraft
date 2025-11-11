@@ -13,6 +13,7 @@ import { jungleTree } from './blocks/jungle_tree';
 import { jungleLeaves } from './blocks/jungle_leaves';
 import { jungleGrass } from './blocks/jungle_grass';
 import { cactus } from './blocks/cactus';
+import { water } from './blocks/water';
 
 export const blocks = {
   empty,
@@ -29,5 +30,6 @@ export const blocks = {
   jungleTree,
   jungleLeaves,
   cactus,
-  jungleGrass
+  jungleGrass,
+  water
 };

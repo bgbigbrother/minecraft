@@ -5,7 +5,6 @@ import { RNG } from '../libraries/rng';
 import { blocks } from '../textures/blocks.js';
 import { Tree } from './tree';
 import { Clouds } from './clouds';
-import { Water } from './water';
 
 const geometry = new THREE.BoxGeometry();
 
@@ -79,7 +78,21 @@ export class Biome extends Terrain {
                     this.generateBlockIfNeeded(simplex, x, y, z);
                     }
                 }
+            }
+        }
+
+        // Fill empty blocks below water level with water blocks
+        const waterLevel = this.params.terrain.waterLevel;
+        for (let x = 0; x < this.size.width; x++) {
+            for (let z = 0; z < this.size.width; z++) {
+                for (let y = 0; y <= waterLevel; y++) {
+                    const block = this.getBlock(x, y, z);
+                    // Only place water in empty spaces (don't replace solid blocks)
+                    if (block && block.id === blocks.empty.id) {
+                        this.setBlockId(x, y, z, blocks.water.id);
+                    }
                 }
+            }
         }
     }
 
@@ -120,10 +133,6 @@ export class Biome extends Terrain {
         const clouds = new Clouds(this.size, this.params.clouds);
         clouds.generate(this.rng);
         this.add(clouds);
-
-        const water = new Water(this.size, this.params.terrain);
-        water.generate(this.rng);
-        this.add(water);
 
         const maxCount = this.size.width * this.size.width * this.size.height;
 

@@ -26,12 +26,18 @@ export class Player extends  ToolControllsPlayerBase {
     this.updateRaycaster(world);
 
     if(this.#physics) {
+      // Check water status before physics update
+      this.inWater = this.#physics.isPlayerInWater(this, world);
+      
       this.#physics.update(dt, this, world);
     }
 
     if (this.tool.animate) {
       this.updateToolAnimation();
     }
+    
+    // Update fog based on water immersion
+    this.updateSceneFog();
   }
 
   addPhysics(physics) {

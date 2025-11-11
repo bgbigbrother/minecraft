@@ -26,8 +26,10 @@ export class Physics extends BasePhysics {
     
     // Run physics updates in fixed timesteps
     while (this.accumulator >= this.stepSize) {
-      // Apply gravity
-      player.velocity.y -= this.gravity * this.stepSize;
+      // Apply gravity (disabled when in water)
+      if (!player.inWater) {
+        player.velocity.y -= this.gravity * this.stepSize;
+      }
       
       // Apply player input (movement)
       player.applyInputs(this.stepSize);
@@ -208,5 +210,40 @@ export class Physics extends BasePhysics {
 
     // Check if contact point is inside the player's bounding cylinder
     return (Math.abs(dy) < player.height / 2) && (r_sq < player.radius * player.radius);
+  }
+
+  /**
+   * Detects if the player is currently in water
+   * Checks if player's bounding cylinder intersects with any water blocks
+   * Uses broad-phase optimization to check only nearby blocks
+   * @param {Player} player - The player object
+   * @param {World} world - The world object
+   * @returns {boolean} True if any part of player is in water
+   */
+  isPlayerInWater(player, world) {
+    // Calculate the bounding box around the player's collision cylinder
+    // This gives us the range of blocks that could possibly contain water
+    const minX = Math.floor(player.position.x - player.radius);
+    const maxX = Math.ceil(player.position.x + player.radius);
+    const minY = Math.floor(player.position.y - player.height);
+    const maxY = Math.ceil(player.position.y);
+    const minZ = Math.floor(player.position.z - player.radius);
+    const maxZ = Math.ceil(player.position.z + player.radius);
+
+    // Check all blocks within the bounding box
+    for (let x = minX; x <= maxX; x++) {
+      for (let y = minY; y <= maxY; y++) {
+        for (let z = minZ; z <= maxZ; z++) {
+          const block = world.getBlock(x, y, z);
+          
+          // Check if this block is water
+          if (block?.id === blocks.water.id) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }

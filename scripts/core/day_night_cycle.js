@@ -53,7 +53,7 @@ export class DayNightCycle {
 
     // Initialize time state properties
     this.currentTime = options.startTime || 0;
-    this.speed = options.speed || 20.0;
+    this.speed = options.speed || 1.0;
     this.isDay = this.currentTime < 12000;
     this.phase = this._calculatePhase(this.currentTime);
   }

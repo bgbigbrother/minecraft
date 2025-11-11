@@ -17,9 +17,11 @@ export class PlayerBase {
     jumpSpeed = 10; // Initial jump velocity
     sprinting = false; // Whether player is currently sprinting
     onGround = false; // Whether player is touching the ground
+    inWater = false; // Whether player is currently in water
+    waterSpeedMultiplier = 1.0; // Smooth transition multiplier for water speed (1.0 = normal, 0.5 = in water)
 
     // Movement vectors
-    input = new Vector3(); // Input direction from keyboard
+    input = new Vector3(); // Input direction from keyboard (x, y, z where y is vertical for swimming)
     velocity = new Vector3(); // Current velocity in camera space
     #worldVelocity = new Vector3(); // Velocity in world space (private)
     
@@ -194,10 +196,18 @@ export class PlayerBase {
     applyInputs(dt) {
         // Only process input when pointer is locked (first-person mode active)
         if (this.controls.isLocked === true) {
-            // Determine speed multiplier: 3x for sprint mode, 1.5x for shift sprint, 1x for normal
-            const speedMultiplier = this.sprintMode ? 3 : (this.sprinting ? 1.5 : 1);
+            // Smooth water speed transition over 0.1 seconds
+            const targetWaterMultiplier = this.inWater ? 0.5 : 1.0;
+            const lerpFactor = Math.min(dt / 0.1, 1.0); // Transition over 0.1 seconds
+            this.waterSpeedMultiplier += (targetWaterMultiplier - this.waterSpeedMultiplier) * lerpFactor;
             
-            // Apply sprint multiplier to horizontal velocity
+            // Determine speed multiplier: 3x for sprint mode, 1.5x for shift sprint, 1x for normal
+            const sprintMultiplier = this.sprintMode ? 3 : (this.sprinting ? 1.5 : 1);
+            
+            // Combined speed multiplier with smooth water transition
+            const speedMultiplier = sprintMultiplier * this.waterSpeedMultiplier;
+            
+            // Apply speed multiplier to horizontal velocity
             this.velocity.x = this.input.x * speedMultiplier;
             this.velocity.z = this.input.z * speedMultiplier;
             
@@ -205,7 +215,23 @@ export class PlayerBase {
             this.controls.moveRight(this.velocity.x * dt);
             this.controls.moveForward(this.velocity.z * dt);
             
-            // Apply vertical velocity (gravity/jumping)
+            // Swimming: Allow vertical movement when in water
+            if (this.inWater) {
+                // Space key for swimming up
+                if (this.input.y > 0) {
+                    this.velocity.y = this.maxSpeed * this.waterSpeedMultiplier;
+                }
+                // Shift key for swimming down
+                else if (this.input.y < 0) {
+                    this.velocity.y = -this.maxSpeed * this.waterSpeedMultiplier;
+                }
+                // Neutral buoyancy when no vertical input
+                else {
+                    this.velocity.y *= 0.9; // Dampen vertical velocity
+                }
+            }
+            
+            // Apply vertical velocity (gravity/jumping when not in water)
             this.position.y += this.velocity.y * dt;
 
             // Prevent falling through the world

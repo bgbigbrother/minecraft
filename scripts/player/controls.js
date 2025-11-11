@@ -65,7 +65,11 @@ export class ControllsPlayerBase extends PlayerBase {
             break;
         case 'ShiftLeft':
         case 'ShiftRight':
+            this.input.y = 0; // Stop vertical movement (swimming)
             this.sprinting = false; // Stop sprinting
+            break;
+        case 'Space':
+            this.input.y = 0; // Stop vertical movement (swimming)
             break;
         }
     }
@@ -137,16 +141,22 @@ export class ControllsPlayerBase extends PlayerBase {
                 this.velocity.set(0, 0, 0); // Reset velocity
                 break;
             
-            // Shift: Sprint
+            // Shift: Sprint or swim down
             case 'ShiftLeft':
             case 'ShiftRight':
-                this.sprinting = true;
+                if (this.inWater) {
+                    this.input.y = -1; // Swim down
+                } else {
+                    this.sprinting = true; // Sprint
+                }
                 break;
             
-            // Space: Jump (only when on ground)
+            // Space: Jump or swim up
             case 'Space':
-                if (this.onGround) {
-                    this.velocity.y += this.jumpSpeed;
+                if (this.inWater) {
+                    this.input.y = 1; // Swim up
+                } else if (this.onGround) {
+                    this.velocity.y += this.jumpSpeed; // Jump
                 }
                 break;
             
