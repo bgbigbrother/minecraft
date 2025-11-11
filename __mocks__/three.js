@@ -69,6 +69,9 @@ export class Group {
     this.position = new Vector3();
     this.userData = {};
     this.scale = new Vector3(1, 1, 1);
+    this.rotation = { x: 0, y: 0, z: 0 };
+    this.receiveShadow = false;
+    this.castShadow = false;
   }
   add(obj) {
     this.children.push(obj);
@@ -77,6 +80,9 @@ export class Group {
     const index = this.children.indexOf(obj);
     if (index > -1) this.children.splice(index, 1);
   }
+  clear() {
+    this.children = [];
+  }
 }
 
 export class Mesh {
@@ -84,7 +90,16 @@ export class Mesh {
     this.geometry = geometry;
     this.material = material;
     this.position = new Vector3();
+    this.rotation = { x: 0, y: 0, z: 0 };
+    this.scale = new Vector3(1, 1, 1);
     this.visible = true;
+    this.layers = { set: () => {} };
+  }
+  rotateX(angle) {
+    this.rotation.x += angle;
+  }
+  rotateY(angle) {
+    this.rotation.y += angle;
   }
 }
 
@@ -145,3 +160,69 @@ export class TextureLoader {
     };
   }
 }
+
+export class DirectionalLight {
+  constructor() {
+    this.intensity = 1;
+    this.position = new Vector3();
+    this.castShadow = false;
+    this.shadow = {
+      camera: { left: 0, right: 0, top: 0, bottom: 0, near: 0, far: 0 },
+      bias: 0,
+      mapSize: new Vector2()
+    };
+    this.target = { position: new Vector3() };
+  }
+}
+
+export class AmbientLight {
+  constructor() {
+    this.intensity = 1;
+  }
+}
+
+export class PlaneGeometry {
+  constructor(width, height, widthSegments, heightSegments) {
+    this.width = width;
+    this.height = height;
+    this.attributes = {
+      position: {
+        array: new Float32Array(100),
+        needsUpdate: false
+      }
+    };
+  }
+  computeVertexNormals() {}
+}
+
+export class InstancedMesh extends Mesh {
+  constructor(geometry, material, count) {
+    super(geometry, material);
+    this.count = 0;
+    this.castShadow = false;
+    this.receiveShadow = false;
+    this.name = '';
+  }
+  setMatrixAt() {}
+}
+
+export class AnimationMixer {
+  constructor(model) {
+    this.model = model;
+  }
+  update() {}
+  clipAction() {
+    return {
+      play: () => {},
+      stop: () => {}
+    };
+  }
+}
+
+export class AnimationClip {
+  static findByName(animations, name) {
+    return animations.find(anim => anim.name === name);
+  }
+}
+
+export const DoubleSide = 2;
