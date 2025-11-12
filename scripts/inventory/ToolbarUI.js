@@ -16,6 +16,9 @@ export class ToolbarUI {
     // Maximum number of item slots to display (excluding pickaxe at toolbar-0)
     this.maxSlots = 8;
     
+    // Empty slot placeholder texture
+    this.emptySlotTexture = 'textures/empty_slot.png';
+    
     // Reference to the toolbar container DOM element
     this.toolbarContainer = document.getElementById('toolbar');
     
@@ -164,9 +167,9 @@ export class ToolbarUI {
 
     // Handle empty slots or zero quantity (e.g., when last item is placed)
     if (blockId === null || quantity === 0 || quantity < 0) {
-      // Clear the slot - set to transparent/empty placeholder
-      slotElement.src = '';
-      slotElement.style.opacity = '0.3';
+      // Clear the slot - set to empty slot placeholder texture
+      slotElement.src = this.emptySlotTexture;
+      slotElement.style.opacity = '0.5';
       
       // Remove any existing quantity overlay
       const existingOverlay = slotElement.parentElement.querySelector(`#quantity-${slotIndex}`);
@@ -228,9 +231,9 @@ export class ToolbarUI {
       const slotElement = document.getElementById(`toolbar-${i}`);
       
       if (slotElement) {
-        // Reset to empty placeholder
-        slotElement.src = '';
-        slotElement.style.opacity = '0.3';
+        // Reset to empty slot placeholder texture
+        slotElement.src = this.emptySlotTexture;
+        slotElement.style.opacity = '0.5';
         
         // Remove quantity overlay if it exists
         const quantityOverlay = slotElement.parentElement.querySelector(`#quantity-${i}`);

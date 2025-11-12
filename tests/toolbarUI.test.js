@@ -172,8 +172,8 @@ describe('ToolbarUI', () => {
       // All slots should be empty
       for (let i = 1; i <= 8; i++) {
         const slot = document.getElementById(`toolbar-${i}`);
-        expect(slot.src === '' || slot.src === 'http://localhost/').toBe(true);
-        expect(slot.style.opacity).toBe('0.3');
+        expect(slot.src).toContain('empty_slot.png');
+        expect(slot.style.opacity).toBe('0.5');
       }
     });
     
@@ -224,8 +224,8 @@ describe('ToolbarUI', () => {
       toolbarUI.updateSlot(1, null, 0);
       
       const slot = document.getElementById('toolbar-1');
-      expect(slot.src === '' || slot.src === 'http://localhost/').toBe(true);
-      expect(slot.style.opacity).toBe('0.3');
+      expect(slot.src).toContain('empty_slot.png');
+      expect(slot.style.opacity).toBe('0.5');
       
       // Quantity overlay should be removed
       const quantityOverlay = slot.parentElement.querySelector('#quantity-1');
@@ -237,8 +237,8 @@ describe('ToolbarUI', () => {
       toolbarUI.updateSlot(1, 3, 0);
       
       const slot = document.getElementById('toolbar-1');
-      expect(slot.src === '' || slot.src === 'http://localhost/').toBe(true);
-      expect(slot.style.opacity).toBe('0.3');
+      expect(slot.src).toContain('empty_slot.png');
+      expect(slot.style.opacity).toBe('0.5');
     });
     
     test('blocks attempts to modify toolbar-0 (pickaxe)', () => {
@@ -276,8 +276,8 @@ describe('ToolbarUI', () => {
       // All item slots should be empty
       for (let i = 1; i <= 8; i++) {
         const slot = document.getElementById(`toolbar-${i}`);
-        expect(slot.src === '' || slot.src === 'http://localhost/').toBe(true);
-        expect(slot.style.opacity).toBe('0.3');
+        expect(slot.src).toContain('empty_slot.png');
+        expect(slot.style.opacity).toBe('0.5');
         
         // Quantity overlays should be removed
         const quantityOverlay = slot.parentElement.querySelector(`#quantity-${i}`);
@@ -312,8 +312,8 @@ describe('ToolbarUI', () => {
       
       // Should still be cleared
       const slot1 = document.getElementById('toolbar-1');
-      expect(slot1.src === '' || slot1.src === 'http://localhost/').toBe(true);
-      expect(slot1.style.opacity).toBe('0.3');
+      expect(slot1.src).toContain('empty_slot.png');
+      expect(slot1.style.opacity).toBe('0.5');
     });
   });
   
@@ -325,8 +325,8 @@ describe('ToolbarUI', () => {
       // All slots should be empty
       for (let i = 1; i <= 8; i++) {
         const slot = document.getElementById(`toolbar-${i}`);
-        expect(slot.src === '' || slot.src === 'http://localhost/').toBe(true);
-        expect(slot.style.opacity).toBe('0.3');
+        expect(slot.src).toContain('empty_slot.png');
+        expect(slot.style.opacity).toBe('0.5');
       }
     });
   });
@@ -384,14 +384,14 @@ describe('ToolbarUI', () => {
       expect(document.getElementById('toolbar-2').src).toContain('dirt.png');
       expect(document.getElementById('toolbar-3').src).toContain('stone.png');
       
-      // Remaining slots should be empty (empty string becomes base URL in jsdom)
+      // Remaining slots should be empty
       const slot4 = document.getElementById('toolbar-4');
-      expect(slot4.src === '' || slot4.src === 'http://localhost/').toBe(true);
-      expect(slot4.style.opacity).toBe('0.3');
+      expect(slot4.src).toContain('empty_slot.png');
+      expect(slot4.style.opacity).toBe('0.5');
       
       const slot5 = document.getElementById('toolbar-5');
-      expect(slot5.src === '' || slot5.src === 'http://localhost/').toBe(true);
-      expect(slot5.style.opacity).toBe('0.3');
+      expect(slot5.src).toContain('empty_slot.png');
+      expect(slot5.style.opacity).toBe('0.5');
     });
     
     test('toolbar updates when last item of a type is placed', () => {
@@ -406,10 +406,10 @@ describe('ToolbarUI', () => {
       inventoryManager.removeItem(3, 1);
       toolbarUI.render();
       
-      // Slot should now be empty (empty string becomes base URL in jsdom)
+      // Slot should now be empty
       const slot1 = document.getElementById('toolbar-1');
-      expect(slot1.src === '' || slot1.src === 'http://localhost/').toBe(true);
-      expect(slot1.style.opacity).toBe('0.3');
+      expect(slot1.src).toContain('empty_slot.png');
+      expect(slot1.style.opacity).toBe('0.5');
     });
     
     test('handles zero quantity items correctly', () => {
@@ -419,10 +419,10 @@ describe('ToolbarUI', () => {
       // Manually set quantity to 0 (edge case)
       toolbarUI.updateSlot(1, 1, 0);
       
-      // Slot should be cleared (empty string becomes base URL in jsdom)
+      // Slot should be cleared
       const slot1 = document.getElementById('toolbar-1');
-      expect(slot1.src === '' || slot1.src === 'http://localhost/').toBe(true);
-      expect(slot1.style.opacity).toBe('0.3');
+      expect(slot1.src).toContain('empty_slot.png');
+      expect(slot1.style.opacity).toBe('0.5');
     });
     
     test('handles negative quantity items correctly', () => {
@@ -432,10 +432,10 @@ describe('ToolbarUI', () => {
       // Manually set negative quantity (edge case)
       toolbarUI.updateSlot(1, 1, -5);
       
-      // Slot should be cleared (empty string becomes base URL in jsdom)
+      // Slot should be cleared
       const slot1 = document.getElementById('toolbar-1');
-      expect(slot1.src === '' || slot1.src === 'http://localhost/').toBe(true);
-      expect(slot1.style.opacity).toBe('0.3');
+      expect(slot1.src).toContain('empty_slot.png');
+      expect(slot1.style.opacity).toBe('0.5');
     });
     
     test('filters out zero quantity items from inventory', () => {
@@ -453,8 +453,8 @@ describe('ToolbarUI', () => {
       
       // Second slot should be empty since item 2 has zero quantity
       const slot2 = document.getElementById('toolbar-2');
-      expect(slot2.src === '' || slot2.src === 'http://localhost/').toBe(true);
-      expect(slot2.style.opacity).toBe('0.3');
+      expect(slot2.src).toContain('empty_slot.png');
+      expect(slot2.style.opacity).toBe('0.5');
     });
   });
 });

@@ -462,7 +462,7 @@ describe('Toolbar and Block Placement Integration', () => {
     // Initial toolbar should be empty
     toolbarUI.render();
     const slot1 = document.getElementById('toolbar-1');
-    expect(slot1.src === '' || slot1.src === 'http://localhost/').toBe(true);
+    expect(slot1.src).toContain('empty_slot.png');
     
     // Spawn and collect a stone block
     const blockId = blocks.stone.id;
@@ -520,8 +520,8 @@ describe('Toolbar and Block Placement Integration', () => {
     toolbarUI.render();
     
     // Slot should now be empty
-    expect(slot1.src === '' || slot1.src === 'http://localhost/').toBe(true);
-    expect(slot1.style.opacity).toBe('0.3');
+    expect(slot1.src).toContain('empty_slot.png');
+    expect(slot1.style.opacity).toBe('0.5');
     
     // Quantity overlay should be removed
     const quantityOverlay = document.querySelector('#quantity-1');
@@ -653,8 +653,7 @@ describe('Toolbar and Block Placement Integration', () => {
     
     // Start with empty inventory
     toolbarUI.render();
-    expect(document.getElementById('toolbar-1').src === '' || 
-           document.getElementById('toolbar-1').src === 'http://localhost/').toBe(true);
+    expect(document.getElementById('toolbar-1').src).toContain('empty_slot.png');
     
     // Collect 3 stone blocks
     world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(10.5, 10, 10));
@@ -679,9 +678,8 @@ describe('Toolbar and Block Placement Integration', () => {
     toolbarUI.render();
     
     // Toolbar should be empty again
-    expect(document.getElementById('toolbar-1').src === '' || 
-           document.getElementById('toolbar-1').src === 'http://localhost/').toBe(true);
-    expect(document.getElementById('toolbar-1').style.opacity).toBe('0.3');
+    expect(document.getElementById('toolbar-1').src).toContain('empty_slot.png');
+    expect(document.getElementById('toolbar-1').style.opacity).toBe('0.5');
   });
 
   test('should maintain pickaxe in toolbar-0 during all operations', () => {
