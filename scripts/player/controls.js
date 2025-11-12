@@ -26,6 +26,46 @@ export class ControllsPlayerBase extends PlayerBase {
     }
 
     /**
+     * Gets the block ID from a toolbar slot by reading the toolbar UI
+     * @param {number} slotNumber - Slot number (1-8)
+     * @returns {number|null} Block ID in that slot, or null if empty
+     */
+    getBlockIdFromSlot(slotNumber) {
+        // Access the toolbar UI's slot contents cache
+        if (this.world && this.world.toolbarUI) {
+            const slotContent = this.world.toolbarUI.slotContents.get(slotNumber);
+            if (slotContent) {
+                return slotContent[0]; // Return the block ID
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the currently active toolbar slot number
+     * @returns {number} Slot number (0-8)
+     */
+    getActiveSlot() {
+        // If activeBlockId is 0 (pickaxe), return slot 0
+        if (this.activeBlockId === blocks.empty.id) {
+            return 0;
+        }
+        
+        // Find which slot contains the active block ID
+        if (this.world && this.world.toolbarUI) {
+            for (let i = 1; i <= 8; i++) {
+                const slotContent = this.world.toolbarUI.slotContents.get(i);
+                if (slotContent && slotContent[0] === this.activeBlockId) {
+                    return i;
+                }
+            }
+        }
+        
+        // Default to slot 0 if not found
+        return 0;
+    }
+
+    /**
      * Called when pointer lock is activated (game starts)
      * Hides the instruction overlay
      */
@@ -87,7 +127,7 @@ export class ControllsPlayerBase extends PlayerBase {
         }
 
         switch (event.code) {
-            // Number keys 0-8: Select block type from hotbar
+            // Number keys 0-9: Select block type from hotbar
             case 'Digit0':
             case 'Digit1':
             case 'Digit2':
@@ -97,16 +137,37 @@ export class ControllsPlayerBase extends PlayerBase {
             case 'Digit6':
             case 'Digit7':
             case 'Digit8':
-                // Remove selection from current toolbar icon
-                document.getElementById(`toolbar-${this.activeBlockId}`)?.classList.remove('selected');
-                // Add selection to new toolbar icon
-                document.getElementById(`toolbar-${event.key}`)?.classList.add('selected');
+            case 'Digit9':
+                // Get the pressed key number (slot number)
+                const slotNumber = Number(event.key);
+                
+                // Remove selection from current toolbar slot
+                const currentSlot = this.getActiveSlot();
+                document.getElementById(`toolbar-${currentSlot}`)?.classList.remove('selected');
+                
+                // Add selection to new toolbar slot
+                document.getElementById(`toolbar-${slotNumber}`)?.classList.add('selected');
 
-                // Update active block ID (0 = pickaxe, 1-8 = block types)
-                this.activeBlockId = Number(event.key);
-
-                // Show pickaxe only when slot 0 is selected
-                this.tool.container.visible = (this.activeBlockId === 0);
+                // Get the block ID from the toolbar slot contents
+                if (slotNumber === 0) {
+                    // Slot 0 is always the pickaxe (empty block ID)
+                    this.activeBlockId = blocks.empty.id;
+                    this.tool.container.visible = true;
+                } else {
+                    // Get the block ID from the toolbar UI slot contents
+                    const blockIdInSlot = this.getBlockIdFromSlot(slotNumber);
+                    if (blockIdInSlot !== null) {
+                        this.activeBlockId = blockIdInSlot;
+                        this.tool.container.visible = false;
+                    } else {
+                        // Slot is empty, switch to pickaxe
+                        this.activeBlockId = blocks.empty.id;
+                        this.tool.container.visible = true;
+                        // Update visual selection to pickaxe
+                        document.getElementById(`toolbar-${slotNumber}`)?.classList.remove('selected');
+                        document.getElementById('toolbar-0')?.classList.add('selected');
+                    }
+                }
 
                 break;
             

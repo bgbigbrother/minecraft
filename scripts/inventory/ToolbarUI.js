@@ -60,7 +60,7 @@ export class ToolbarUI {
     iconMap.set(12, 'textures/jungle_leaves.png');     // jungle leaves
     iconMap.set(13, 'textures/cactus_top.png');        // cactus (top texture)
     iconMap.set(14, 'textures/grass.png');             // jungle grass (uses grass texture with color tint)
-    iconMap.set(15, 'textures/grass.png');             // water (using grass as placeholder since water has no texture file)
+    iconMap.set(15, 'textures/stone.png');             // water (using stone as placeholder - will be tinted blue)
     
     return iconMap;
   }
@@ -170,6 +170,7 @@ export class ToolbarUI {
       // Clear the slot - set to empty slot placeholder texture
       slotElement.src = this.emptySlotTexture;
       slotElement.style.opacity = '0.5';
+      slotElement.style.filter = 'none'; // Clear any color filters
       
       // Remove any existing quantity overlay
       const existingOverlay = slotElement.parentElement.querySelector(`#quantity-${slotIndex}`);
@@ -182,6 +183,13 @@ export class ToolbarUI {
       if (texturePath) {
         slotElement.src = texturePath;
         slotElement.style.opacity = '1';
+        
+        // Apply blue tint for water block (ID 15)
+        if (blockId === 15) {
+          slotElement.style.filter = 'sepia(100%) saturate(300%) brightness(70%) hue-rotate(180deg)';
+        } else {
+          slotElement.style.filter = 'none';
+        }
       } else {
         console.warn(`No texture mapping found for block ID ${blockId}`);
         slotElement.src = '';

@@ -13,6 +13,9 @@ export class World extends EditChunkStoreWorldBaseClass {
     // Reference to inventory manager and toolbar UI (set externally)
     this.inventoryManager = null;
     this.toolbarUI = null;
+    
+    // Creative mode: allows unlimited block placement without inventory checks
+    this.creativeMode = true;
   }
   
   /**
@@ -24,10 +27,15 @@ export class World extends EditChunkStoreWorldBaseClass {
    * @returns {boolean} - True if block was placed, false if placement was prevented
    */
   addBlock(x, y, z, blockId) {
-    // Call parent method with inventory manager to check availability
-    const placed = super.addBlock(x, y, z, blockId, this.inventoryManager);
+    // In creative mode, skip inventory checks for unlimited placement
+    // In survival mode, check inventory before placing
+    const inventoryCheck = this.creativeMode ? null : this.inventoryManager;
     
-    if (placed && this.inventoryManager) {
+    // Call parent method with inventory manager (or null for creative mode)
+    const placed = super.addBlock(x, y, z, blockId, inventoryCheck);
+    
+    // Only deduct from inventory in survival mode
+    if (placed && !this.creativeMode && this.inventoryManager) {
       // Block was successfully placed, deduct from inventory
       const removed = this.inventoryManager.removeItem(blockId, 1);
       
