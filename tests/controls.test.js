@@ -30,9 +30,24 @@ describe('ControllsPlayerBase', () => {
       <div id="toolbar-8"></div>
     `;
 
+    // Mock toolbar UI with slot contents
+    const mockToolbarUI = {
+      slotContents: new Map([
+        [1, [1, 1]], // Slot 1 contains block ID 1
+        [2, [2, 1]], // Slot 2 contains block ID 2
+        [3, [3, 1]], // Slot 3 contains block ID 3
+        [4, [4, 1]], // Slot 4 contains block ID 4
+        [5, [5, 1]], // Slot 5 contains block ID 5
+        [6, [6, 1]], // Slot 6 contains block ID 6
+        [7, [7, 1]], // Slot 7 contains block ID 7
+        [8, [8, 1]], // Slot 8 contains block ID 8
+      ])
+    };
+
     mockWorld = {
       addBlock: jest.fn(),
-      removeBlock: jest.fn()
+      removeBlock: jest.fn(),
+      toolbarUI: mockToolbarUI
     };
 
     player = new ControllsPlayerBase();
