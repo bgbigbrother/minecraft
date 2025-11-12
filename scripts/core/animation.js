@@ -13,9 +13,9 @@ import { ItemCollector } from '../inventory/ItemCollector.js';
  * Called every frame to update game state and render the scene
  */
 let previousTime = performance.now();
-export function animate(player, world, dayNightCycle) {
+export function animate(player, world, dayNightCycle, toolbarUI) {
   // Schedule next frame
-  requestAnimationFrame(animate.bind(this, player, world, dayNightCycle));
+  requestAnimationFrame(animate.bind(this, player, world, dayNightCycle, toolbarUI));
 
   // Calculate delta time (time since last frame) in seconds
   const currentTime = performance.now();
@@ -42,6 +42,11 @@ export function animate(player, world, dayNightCycle) {
 
     // Check for and collect nearby dropped items
     ItemCollector.checkCollections(player, world.droppedItems, world);
+    
+    // Update toolbar display after collection check
+    if (toolbarUI) {
+      toolbarUI.render();
+    }
 
     // Update day/night cycle (time progression, lighting, sky colors, celestial bodies)
     dayNightCycle.update(dt);

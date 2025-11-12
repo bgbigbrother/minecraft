@@ -9,6 +9,44 @@ export class World extends EditChunkStoreWorldBaseClass {
     
     // Array to track all dropped items in the world
     this.droppedItems = [];
+    
+    // Reference to inventory manager and toolbar UI (set externally)
+    this.inventoryManager = null;
+    this.toolbarUI = null;
+  }
+  
+  /**
+   * Override addBlock to handle inventory deduction and toolbar updates
+   * @param {number} x - World X coordinate
+   * @param {number} y - World Y coordinate
+   * @param {number} z - World Z coordinate
+   * @param {number} blockId - Type of block to place (from blocks.js)
+   * @returns {boolean} - True if block was placed, false if placement was prevented
+   */
+  addBlock(x, y, z, blockId) {
+    // Call parent method with inventory manager to check availability
+    const placed = super.addBlock(x, y, z, blockId, this.inventoryManager);
+    
+    if (placed && this.inventoryManager) {
+      // Block was successfully placed, deduct from inventory
+      const removed = this.inventoryManager.removeItem(blockId, 1);
+      
+      if (!removed) {
+        // Safety check: this shouldn't happen since we already checked hasItem
+        console.warn(`Failed to remove item ${blockId} from inventory after placement`);
+        return false;
+      }
+      
+      // Save inventory to persist changes
+      this.inventoryManager.save();
+      
+      // Update toolbar display
+      if (this.toolbarUI) {
+        this.toolbarUI.render();
+      }
+    }
+    
+    return placed;
   }
 
   /**

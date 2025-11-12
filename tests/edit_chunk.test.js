@@ -102,4 +102,62 @@ describe('EditChunkStoreWorldBaseClass', () => {
     
     expect(mockChunk.removeBlock).toHaveBeenCalled();
   });
+
+  test('should prevent block placement when inventory check fails', () => {
+    const mockChunk = {
+      userData: { x: 0, z: 0 },
+      loaded: true,
+      addBlock: jest.fn(),
+      isBlockObscured: jest.fn(() => false)
+    };
+    world.children.push(mockChunk);
+
+    // Mock inventory manager that doesn't have the item
+    const mockInventory = {
+      hasItem: jest.fn(() => false)
+    };
+
+    const result = world.addBlock(5, 10, 5, 2, mockInventory);
+    
+    expect(result).toBe(false);
+    expect(mockChunk.addBlock).not.toHaveBeenCalled();
+    expect(mockInventory.hasItem).toHaveBeenCalledWith(2);
+  });
+
+  test('should allow block placement when inventory check passes', () => {
+    const mockChunk = {
+      userData: { x: 0, z: 0 },
+      loaded: true,
+      addBlock: jest.fn(),
+      isBlockObscured: jest.fn(() => false)
+    };
+    world.children.push(mockChunk);
+
+    // Mock inventory manager that has the item
+    const mockInventory = {
+      hasItem: jest.fn(() => true)
+    };
+
+    const result = world.addBlock(5, 10, 5, 2, mockInventory);
+    
+    expect(result).toBe(true);
+    expect(mockChunk.addBlock).toHaveBeenCalled();
+    expect(mockInventory.hasItem).toHaveBeenCalledWith(2);
+  });
+
+  test('should allow block placement without inventory manager', () => {
+    const mockChunk = {
+      userData: { x: 0, z: 0 },
+      loaded: true,
+      addBlock: jest.fn(),
+      isBlockObscured: jest.fn(() => false)
+    };
+    world.children.push(mockChunk);
+
+    // No inventory manager provided
+    const result = world.addBlock(5, 10, 5, 2);
+    
+    expect(result).toBe(true);
+    expect(mockChunk.addBlock).toHaveBeenCalled();
+  });
 });

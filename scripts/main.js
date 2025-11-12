@@ -11,6 +11,7 @@ import { ModelLoader } from './mobs/model_loader';
 import { DayNightCycle } from './core/day_night_cycle';
 import { sun, sunMesh } from './core/sun';
 import { moonMesh } from './core/moon';
+import { ToolbarUI } from './inventory/ToolbarUI';
 
 /**
  * Main application entry point
@@ -27,6 +28,15 @@ new ModelLoader((models) => {
     const physics = new Physics(scene);
     player.addPhysics(physics); // Attach physics system to player
 
+    // Initialize toolbar UI with player's inventory
+    const toolbarUI = new ToolbarUI(player.inventory);
+    toolbarUI.player = player; // Connect player reference for activeBlockId updates
+    toolbarUI.render(); // Initial render to show any persisted inventory
+
+    // Connect inventory system to world for block placement checks
+    world.inventoryManager = player.inventory;
+    world.toolbarUI = toolbarUI;
+
     // Handle window resize events to maintain proper aspect ratio
     window.addEventListener('resize', onResize.bind(this, player));
 
@@ -37,5 +47,5 @@ new ModelLoader((models) => {
     // Create DayNightCycle instance with all required parameters
     const dayNightCycle = new DayNightCycle(scene, sun, sunMesh, moonMesh, ambientLight, world);
     
-    animate.call(this, player, world, dayNightCycle);
+    animate.call(this, player, world, dayNightCycle, toolbarUI);
 });

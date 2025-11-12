@@ -41,8 +41,18 @@ export class EditChunkStoreWorldBaseClass extends ChunkStoreWorldBaseClass {
      * @param {number} y - World Y coordinate
      * @param {number} z - World Z coordinate
      * @param {number} blockId - Type of block to place (from blocks.js)
+     * @param {InventoryManager} inventoryManager - Optional inventory manager to check/deduct items
+     * @returns {boolean} - True if block was placed, false if placement was prevented
      */
-    addBlock(x, y, z, blockId) {
+    addBlock(x, y, z, blockId, inventoryManager = null) {
+        // If inventory manager is provided, check if player has the item
+        if (inventoryManager) {
+            if (!inventoryManager.hasItem(blockId)) {
+                // Player doesn't have this item in inventory, prevent placement
+                return false;
+            }
+        }
+
         const coords = this.worldToChunkCoords(x, y, z);
         const chunk = this.getChunk(coords.chunk.x, coords.chunk.z);
 
@@ -63,7 +73,11 @@ export class EditChunkStoreWorldBaseClass extends ChunkStoreWorldBaseClass {
             this.hideBlock(x, y + 1, z); // Top
             this.hideBlock(x, y, z - 1); // Front
             this.hideBlock(x, y, z + 1); // Back
+            
+            return true;
         }
+        
+        return false;
     }
 
     /**

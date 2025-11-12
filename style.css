@@ -53,6 +53,30 @@ h1 {
   outline: 4px solid white;
 }
 
+/* Toolbar slot wrapper for positioning quantity overlays */
+.toolbar-slot {
+  position: relative;
+  display: inline-block;
+}
+
+/* Quantity overlay styling for inventory items */
+.toolbar-quantity {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 11px;
+  font-weight: bold;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.75);
+  padding: 2px 4px;
+  border-radius: 2px;
+  pointer-events: none;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+  line-height: 1;
+  min-width: 12px;
+  text-align: center;
+}
+
 #overlay {
   position: fixed;
   top: 0;

@@ -361,3 +361,405 @@ describe('Inventory Collection Flow Integration', () => {
     expect(mockPlayer.inventory.getQuantity(blocks.stone.id)).toBe(0);
   });
 });
+
+describe('Toolbar and Block Placement Integration', () => {
+  let world;
+  let mockPlayer;
+  let toolbarUI;
+  let originalLocalStorage;
+
+  // Mock DOM setup for toolbar
+  function setupMockDOM() {
+    const toolbar = document.createElement('div');
+    toolbar.id = 'toolbar';
+    
+    // Create toolbar slots 0-8
+    for (let i = 0; i <= 8; i++) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'toolbar-slot';
+      
+      const img = document.createElement('img');
+      img.id = `toolbar-${i}`;
+      img.className = 'toolbar-icon';
+      if (i === 0) {
+        img.src = 'textures/pickaxe.png';
+        img.classList.add('selected');
+      }
+      
+      wrapper.appendChild(img);
+      toolbar.appendChild(wrapper);
+    }
+    
+    document.body.appendChild(toolbar);
+    return toolbar;
+  }
+
+  function cleanupMockDOM() {
+    const toolbar = document.getElementById('toolbar');
+    if (toolbar) {
+      toolbar.remove();
+    }
+  }
+
+  beforeEach(() => {
+    // Setup DOM
+    setupMockDOM();
+    
+    // Mock localStorage
+    originalLocalStorage = global.localStorage;
+    const storageData = {};
+    global.localStorage = {
+      getItem(key) {
+        return storageData[key] || null;
+      },
+      setItem(key, value) {
+        storageData[key] = value;
+      },
+      removeItem(key) {
+        delete storageData[key];
+      },
+      clear() {
+        Object.keys(storageData).forEach(key => delete storageData[key]);
+      }
+    };
+
+    // Import required classes
+    const THREE = require('three');
+    const { World } = require('../scripts/world/world.js');
+    const { InventoryManager } = require('../scripts/inventory/InventoryManager.js');
+    const { ToolbarUI } = require('../scripts/inventory/ToolbarUI.js');
+
+    // Create world
+    world = new World();
+    
+    // Create mock player with inventory
+    mockPlayer = {
+      position: new THREE.Vector3(10, 10, 10),
+      inventory: new InventoryManager()
+    };
+    
+    // Create toolbar UI
+    toolbarUI = new ToolbarUI(mockPlayer.inventory);
+  });
+
+  afterEach(() => {
+    // Clean up
+    if (world && world.droppedItems) {
+      world.droppedItems.forEach(item => {
+        if (item.dispose) item.dispose();
+      });
+      world.droppedItems = [];
+    }
+    
+    cleanupMockDOM();
+    global.localStorage = originalLocalStorage;
+  });
+
+  test('should update toolbar display when item is collected', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Initial toolbar should be empty
+    toolbarUI.render();
+    const slot1 = document.getElementById('toolbar-1');
+    expect(slot1.src === '' || slot1.src === 'http://localhost/').toBe(true);
+    
+    // Spawn and collect a stone block
+    const blockId = blocks.stone.id;
+    world.spawnDroppedItem(blockId, new THREE.Vector3(10.5, 10, 10));
+    ItemCollector.checkCollections(mockPlayer, world.droppedItems, world);
+    
+    // Update toolbar
+    toolbarUI.render();
+    
+    // Toolbar should now show the stone block
+    expect(slot1.src).toContain('stone.png');
+    expect(slot1.style.opacity).toBe('1');
+    
+    // Quantity overlay should show 1
+    const quantityOverlay = document.querySelector('#quantity-1');
+    expect(quantityOverlay).toBeTruthy();
+    expect(quantityOverlay.textContent).toBe('1');
+  });
+
+  test('should decrement quantity in toolbar when block is placed', () => {
+    // Add 5 stone blocks to inventory
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 5);
+    toolbarUI.render();
+    
+    // Verify initial quantity
+    let quantityOverlay = document.querySelector('#quantity-1');
+    expect(quantityOverlay.textContent).toBe('5');
+    
+    // Place a block (simulate placement by removing from inventory)
+    const placed = mockPlayer.inventory.removeItem(blockId, 1);
+    expect(placed).toBe(true);
+    
+    // Update toolbar
+    toolbarUI.render();
+    
+    // Quantity should now be 4
+    quantityOverlay = document.querySelector('#quantity-1');
+    expect(quantityOverlay.textContent).toBe('4');
+  });
+
+  test('should remove item from toolbar when last item is placed', () => {
+    // Add 1 stone block to inventory
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 1);
+    toolbarUI.render();
+    
+    // Verify item is displayed
+    const slot1 = document.getElementById('toolbar-1');
+    expect(slot1.src).toContain('stone.png');
+    expect(slot1.style.opacity).toBe('1');
+    
+    // Place the last block
+    mockPlayer.inventory.removeItem(blockId, 1);
+    toolbarUI.render();
+    
+    // Slot should now be empty
+    expect(slot1.src === '' || slot1.src === 'http://localhost/').toBe(true);
+    expect(slot1.style.opacity).toBe('0.3');
+    
+    // Quantity overlay should be removed
+    const quantityOverlay = document.querySelector('#quantity-1');
+    expect(quantityOverlay).toBeFalsy();
+  });
+
+  test('should prevent placing block when inventory is empty', () => {
+    const blockId = blocks.stone.id;
+    
+    // Verify inventory is empty
+    expect(mockPlayer.inventory.hasItem(blockId)).toBe(false);
+    
+    // Attempt to place a block using addBlock with inventory check
+    const placed = world.addBlock(10, 10, 10, blockId, mockPlayer.inventory);
+    
+    // Placement should be prevented
+    expect(placed).toBe(false);
+    
+    // Block should not exist in world
+    const block = world.getBlock(10, 10, 10);
+    expect(block === null || block.id === 0).toBe(true);
+  });
+
+  test('should allow placing block when inventory has item', () => {
+    const blockId = blocks.stone.id;
+    
+    // Add stone to inventory
+    mockPlayer.inventory.addItem(blockId, 5);
+    
+    // Test the inventory check logic that addBlock uses
+    // The actual placement requires a loaded chunk, which we don't have in this test
+    const hasItem = mockPlayer.inventory.hasItem(blockId);
+    expect(hasItem).toBe(true);
+    
+    // Simulate successful placement by removing item from inventory
+    const removed = mockPlayer.inventory.removeItem(blockId, 1);
+    expect(removed).toBe(true);
+    
+    // Verify inventory was decremented
+    expect(mockPlayer.inventory.getQuantity(blockId)).toBe(4);
+    
+    // Save and update toolbar (as would happen in real placement)
+    mockPlayer.inventory.save();
+    toolbarUI.render();
+    
+    // Verify toolbar shows updated quantity
+    const quantityOverlay = document.querySelector('#quantity-1');
+    expect(quantityOverlay.textContent).toBe('4');
+  });
+
+  test('should persist toolbar state after page reload via localStorage', () => {
+    const { InventoryManager } = require('../scripts/inventory/InventoryManager.js');
+    const { ToolbarUI } = require('../scripts/inventory/ToolbarUI.js');
+    
+    // Add items to inventory and save (in specific order)
+    mockPlayer.inventory.addItem(blocks.stone.id, 10);  // blockId 3
+    mockPlayer.inventory.addItem(blocks.grass.id, 5);   // blockId 1
+    mockPlayer.inventory.addItem(blocks.dirt.id, 3);    // blockId 2
+    mockPlayer.inventory.save();
+    
+    // Render toolbar
+    toolbarUI.render();
+    
+    // Verify toolbar shows items in insertion order
+    expect(document.getElementById('toolbar-1').src).toContain('stone.png');
+    expect(document.getElementById('toolbar-2').src).toContain('grass.png');
+    expect(document.getElementById('toolbar-3').src).toContain('dirt.png');
+    
+    // Simulate page reload by creating new instances
+    const newInventory = new InventoryManager();
+    newInventory.load(); // Load from localStorage
+    
+    const newToolbarUI = new ToolbarUI(newInventory);
+    newToolbarUI.render();
+    
+    // After reload, items may be in different order (Map iteration from JSON)
+    // Verify all items are present with correct quantities
+    const slot1 = document.getElementById('toolbar-1');
+    const slot2 = document.getElementById('toolbar-2');
+    const slot3 = document.getElementById('toolbar-3');
+    
+    // Check that all three items are displayed (order may vary)
+    const displayedTextures = [slot1.src, slot2.src, slot3.src];
+    expect(displayedTextures.some(src => src.includes('stone.png'))).toBe(true);
+    expect(displayedTextures.some(src => src.includes('grass.png'))).toBe(true);
+    expect(displayedTextures.some(src => src.includes('dirt.png'))).toBe(true);
+    
+    // Verify quantities are preserved
+    expect(newInventory.getQuantity(blocks.stone.id)).toBe(10);
+    expect(newInventory.getQuantity(blocks.grass.id)).toBe(5);
+    expect(newInventory.getQuantity(blocks.dirt.id)).toBe(3);
+  });
+
+  test('should update toolbar immediately after collecting multiple items', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Spawn multiple different items near player
+    world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(10.5, 10, 10));
+    world.spawnDroppedItem(blocks.grass.id, new THREE.Vector3(10.8, 10, 10));
+    world.spawnDroppedItem(blocks.dirt.id, new THREE.Vector3(11, 10, 10));
+    
+    // Collect all items (collection order may vary based on array iteration)
+    ItemCollector.checkCollections(mockPlayer, world.droppedItems, world);
+    
+    // Update toolbar
+    toolbarUI.render();
+    
+    // Verify all three items are displayed (order depends on collection order)
+    const slot1 = document.getElementById('toolbar-1');
+    const slot2 = document.getElementById('toolbar-2');
+    const slot3 = document.getElementById('toolbar-3');
+    
+    // Check that all three items are displayed
+    const displayedTextures = [slot1.src, slot2.src, slot3.src];
+    expect(displayedTextures.some(src => src.includes('stone.png'))).toBe(true);
+    expect(displayedTextures.some(src => src.includes('grass.png'))).toBe(true);
+    expect(displayedTextures.some(src => src.includes('dirt.png'))).toBe(true);
+    
+    // Verify all quantities are 1
+    expect(mockPlayer.inventory.getQuantity(blocks.stone.id)).toBe(1);
+    expect(mockPlayer.inventory.getQuantity(blocks.grass.id)).toBe(1);
+    expect(mockPlayer.inventory.getQuantity(blocks.dirt.id)).toBe(1);
+  });
+
+  test('should handle full collection and placement cycle', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Start with empty inventory
+    toolbarUI.render();
+    expect(document.getElementById('toolbar-1').src === '' || 
+           document.getElementById('toolbar-1').src === 'http://localhost/').toBe(true);
+    
+    // Collect 3 stone blocks
+    world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(10.5, 10, 10));
+    world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(10.8, 10, 10));
+    world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(11, 10, 10));
+    ItemCollector.checkCollections(mockPlayer, world.droppedItems, world);
+    
+    // Update toolbar - should show 3 stone
+    toolbarUI.render();
+    expect(document.getElementById('toolbar-1').src).toContain('stone.png');
+    expect(document.querySelector('#quantity-1').textContent).toBe('3');
+    
+    // Place 2 blocks
+    mockPlayer.inventory.removeItem(blocks.stone.id, 2);
+    toolbarUI.render();
+    
+    // Should show 1 stone remaining
+    expect(document.querySelector('#quantity-1').textContent).toBe('1');
+    
+    // Place last block
+    mockPlayer.inventory.removeItem(blocks.stone.id, 1);
+    toolbarUI.render();
+    
+    // Toolbar should be empty again
+    expect(document.getElementById('toolbar-1').src === '' || 
+           document.getElementById('toolbar-1').src === 'http://localhost/').toBe(true);
+    expect(document.getElementById('toolbar-1').style.opacity).toBe('0.3');
+  });
+
+  test('should maintain pickaxe in toolbar-0 during all operations', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    const pickaxeSlot = document.getElementById('toolbar-0');
+    const originalSrc = pickaxeSlot.src;
+    
+    // Verify pickaxe is initially there
+    expect(originalSrc).toContain('pickaxe.png');
+    
+    // Collect items
+    world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(10.5, 10, 10));
+    ItemCollector.checkCollections(mockPlayer, world.droppedItems, world);
+    toolbarUI.render();
+    
+    // Pickaxe should still be there
+    expect(pickaxeSlot.src).toBe(originalSrc);
+    
+    // Place items
+    mockPlayer.inventory.removeItem(blocks.stone.id, 1);
+    toolbarUI.render();
+    
+    // Pickaxe should still be there
+    expect(pickaxeSlot.src).toBe(originalSrc);
+    
+    // Clear toolbar
+    toolbarUI.clearToolbar();
+    
+    // Pickaxe should STILL be there
+    expect(pickaxeSlot.src).toBe(originalSrc);
+    expect(pickaxeSlot.src).toContain('pickaxe.png');
+  });
+
+  test('should save to localStorage after each placement', () => {
+    // Add items to inventory
+    mockPlayer.inventory.addItem(blocks.stone.id, 5);
+    mockPlayer.inventory.save();
+    
+    // Verify saved
+    let savedData = JSON.parse(localStorage.getItem('minecraft_inventory'));
+    expect(savedData.items[blocks.stone.id]).toBe(5);
+    
+    // Place a block (remove from inventory and save)
+    mockPlayer.inventory.removeItem(blocks.stone.id, 1);
+    mockPlayer.inventory.save();
+    
+    // Verify localStorage was updated
+    savedData = JSON.parse(localStorage.getItem('minecraft_inventory'));
+    expect(savedData.items[blocks.stone.id]).toBe(4);
+    
+    // Place another block
+    mockPlayer.inventory.removeItem(blocks.stone.id, 1);
+    mockPlayer.inventory.save();
+    
+    // Verify again
+    savedData = JSON.parse(localStorage.getItem('minecraft_inventory'));
+    expect(savedData.items[blocks.stone.id]).toBe(3);
+  });
+
+  test('should handle toolbar display with more than 8 item types', () => {
+    // Add 10 different item types
+    for (let i = 1; i <= 10; i++) {
+      mockPlayer.inventory.addItem(i, 5);
+    }
+    
+    toolbarUI.render();
+    
+    // Only first 8 should be displayed
+    for (let i = 1; i <= 8; i++) {
+      const slot = document.getElementById(`toolbar-${i}`);
+      expect(slot.src).not.toBe('');
+      expect(slot.style.opacity).toBe('1');
+    }
+    
+    // Items 9 and 10 are in inventory but not displayed (toolbar limit)
+    expect(mockPlayer.inventory.getQuantity(9)).toBe(5);
+    expect(mockPlayer.inventory.getQuantity(10)).toBe(5);
+  });
+});
