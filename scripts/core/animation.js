@@ -6,6 +6,7 @@ import { controls } from './controls';
 import { renderer } from './renderer';
 import { stats } from './stats';
 import { scene } from './scene';
+import { ItemCollector } from '../inventory/ItemCollector.js';
 
 /**
  * Main animation/render loop
@@ -28,6 +29,19 @@ export function animate(player, world, dayNightCycle) {
     // Update player physics and world chunks
     player.update(dt, world);
     world.update(dt, player);
+
+    // Update all dropped items (physics and rotation)
+    if (world.droppedItems && world.droppedItems.length > 0) {
+      for (let i = 0; i < world.droppedItems.length; i++) {
+        const item = world.droppedItems[i];
+        if (item && item.update) {
+          item.update(dt);
+        }
+      }
+    }
+
+    // Check for and collect nearby dropped items
+    ItemCollector.checkCollections(player, world.droppedItems, world);
 
     // Update day/night cycle (time progression, lighting, sky colors, celestial bodies)
     dayNightCycle.update(dt);

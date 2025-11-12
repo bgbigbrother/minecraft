@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { ChunkStoreWorldBaseClass } from './chunk';
 
 /**
@@ -80,12 +81,23 @@ export class EditChunkStoreWorldBaseClass extends ChunkStoreWorldBaseClass {
         if (coords.block.y === 0) return;
 
         if (chunk && chunk.loaded) {
+            // Get the block type before removing it
+            const block = this.getBlock(x, y, z);
+            // Store the block ID as a value (not reference) before removal
+            const blockId = block ? block.id : 0;
+            
             // Remove the block from the chunk
             chunk.removeBlock(
                 coords.block.x,
                 coords.block.y,
                 coords.block.z
             );
+
+            // Spawn dropped item if block exists and is not empty (air)
+            if (blockId !== 0) {
+                const position = new THREE.Vector3(x, y, z);
+                this.spawnDroppedItem(blockId, position);
+            }
 
             // Reveal adjacent blocks that may have been hidden
             // These blocks now have an exposed face and need to be rendered

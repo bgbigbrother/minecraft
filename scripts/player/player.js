@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { World } from '../world/world';
 import { blocks } from '../textures/blocks';
 import { ToolControllsPlayerBase } from './tool';
+import { InventoryManager } from '../inventory/InventoryManager';
 
 export class Player extends  ToolControllsPlayerBase {
   #physics = null;
@@ -10,6 +11,11 @@ export class Player extends  ToolControllsPlayerBase {
     this.world = world;
     this.scene = scene;
     this.position.set(32, 32, 32);
+    
+    // Initialize inventory and load saved data
+    this.inventory = new InventoryManager();
+    this.inventory.load();
+    
     scene.add(this.camera);
     scene.add(this.cameraHelper);
     scene.add(this.character);

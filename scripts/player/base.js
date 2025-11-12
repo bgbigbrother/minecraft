@@ -154,18 +154,20 @@ export class PlayerBase {
         if (intersections.length > 0) {
             const intersection = intersections[0];
 
+            // Only process block selection for instanced meshes (chunks)
+            // Skip other objects like dropped items
+            if (!intersection.object.isInstancedMesh) {
+                this.selectedCoords = null;
+                this.selectionHelper.visible = false;
+                return;
+            }
+
             // Get the chunk containing the selected block
             const chunk = intersection.object.parent;
 
             // Get the transformation matrix for the specific block instance
             let blockMatrix = new Matrix4();
-            if(intersection.object.bindMatrix) {
-                // For non-instanced meshes
-                blockMatrix = intersection.object.bindMatrix
-            } else {
-                // For instanced meshes, get matrix for specific instance
-                intersection.object.getMatrixAt(intersection.instanceId, blockMatrix);
-            }
+            intersection.object.getMatrixAt(intersection.instanceId, blockMatrix);
             
             // Calculate world coordinates of the selected block
             // Start with chunk position, then apply block's local transform

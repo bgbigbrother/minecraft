@@ -34,6 +34,8 @@ describe('EditChunkStoreWorldBaseClass', () => {
 
   beforeEach(() => {
     world = new EditChunkStoreWorldBaseClass({});
+    // Mock the spawnDroppedItem method that's called during removeBlock
+    world.spawnDroppedItem = jest.fn();
   });
 
   test('should create world instance', () => {
@@ -89,6 +91,7 @@ describe('EditChunkStoreWorldBaseClass', () => {
     const mockChunk = {
       userData: { x: 0, z: 0 },
       loaded: true,
+      getBlock: jest.fn(() => ({ id: 1, instanceId: 0 })),
       removeBlock: jest.fn(),
       addBlockInstance: jest.fn(),
       isBlockObscured: jest.fn(() => false)
