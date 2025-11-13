@@ -7,7 +7,10 @@ jest.mock('../scripts/mobs/cow.js', () => ({
     constructor(model) {
       this.model = { name: 'Cow' };
     }
-    generate(chunk) {}
+    generate(chunk) {
+      // Return true to simulate successful spawn
+      return true;
+    }
     update(deltaTime) {}
   }
 }));
@@ -140,6 +143,13 @@ describe('Chunk', () => {
       chunk.loadPlayerChanges = jest.fn();
       chunk.generateMeshes = jest.fn();
       
+      // Set up terrain data with spawnable blocks for cow to spawn on
+      for (let x = 0; x < 32; x++) {
+        for (let z = 0; z < 32; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       
       expect(chunk.animals.length).toBe(1);
@@ -150,6 +160,13 @@ describe('Chunk', () => {
       chunk.generateTerrain = jest.fn();
       chunk.loadPlayerChanges = jest.fn();
       chunk.generateMeshes = jest.fn();
+      
+      // Set up terrain data with spawnable blocks for cow to spawn on
+      for (let x = 0; x < 32; x++) {
+        for (let z = 0; z < 32; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
       
       chunk.generate(mockModels);
       

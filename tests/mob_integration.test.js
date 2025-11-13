@@ -81,6 +81,14 @@ describe('Mob System End-to-End Integration', () => {
   describe('Cow Spawning in Appropriate Biomes', () => {
     test('should spawn cow in Temperate biome', () => {
       chunk.biome = 'Temperate';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       
       expect(chunk.animals.length).toBe(1);
@@ -90,6 +98,14 @@ describe('Mob System End-to-End Integration', () => {
 
     test('should spawn cow in Jungle biome', () => {
       chunk.biome = 'Jungle';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       
       expect(chunk.animals.length).toBe(1);
@@ -114,6 +130,13 @@ describe('Mob System End-to-End Integration', () => {
       chunk.biome = 'Temperate';
       const addSpy = jest.spyOn(chunk, 'add');
       
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       
       expect(addSpy).toHaveBeenCalledWith(chunk.animals[0].model);
@@ -121,6 +144,14 @@ describe('Mob System End-to-End Integration', () => {
 
     test('should scale cow model to 0.5', () => {
       chunk.biome = 'Temperate';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       
       // The scale is set on the cloned model, not the original
@@ -134,6 +165,14 @@ describe('Mob System End-to-End Integration', () => {
 
     beforeEach(() => {
       chunk.biome = 'Temperate';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       cow = chunk.animals[0];
     });
@@ -244,6 +283,14 @@ describe('Mob System End-to-End Integration', () => {
       chunk1.generateTerrain = jest.fn();
       chunk1.generateMeshes = jest.fn();
       chunk1.loadPlayerChanges = jest.fn();
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk1.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk1.generate(mockModels);
       
       // Create second chunk with cow
@@ -256,6 +303,14 @@ describe('Mob System End-to-End Integration', () => {
       chunk2.generateTerrain = jest.fn();
       chunk2.generateMeshes = jest.fn();
       chunk2.loadPlayerChanges = jest.fn();
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk2.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk2.generate(mockModels);
       
       expect(chunk1.animals.length).toBe(1);
@@ -274,6 +329,14 @@ describe('Mob System End-to-End Integration', () => {
       chunk1.generateTerrain = jest.fn();
       chunk1.generateMeshes = jest.fn();
       chunk1.loadPlayerChanges = jest.fn();
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk1.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk1.generate(mockModels);
       
       const chunk2 = new Chunk(
@@ -285,6 +348,14 @@ describe('Mob System End-to-End Integration', () => {
       chunk2.generateTerrain = jest.fn();
       chunk2.generateMeshes = jest.fn();
       chunk2.loadPlayerChanges = jest.fn();
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk2.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk2.generate(mockModels);
       
       const cow1UpdateSpy = jest.spyOn(chunk1.animals[0], 'update');
@@ -309,6 +380,14 @@ describe('Mob System End-to-End Integration', () => {
       chunk1.generateTerrain = jest.fn();
       chunk1.generateMeshes = jest.fn();
       chunk1.loadPlayerChanges = jest.fn();
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk1.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk1.generate(mockModels);
       
       const chunk2 = new Chunk(
@@ -320,6 +399,14 @@ describe('Mob System End-to-End Integration', () => {
       chunk2.generateTerrain = jest.fn();
       chunk2.generateMeshes = jest.fn();
       chunk2.loadPlayerChanges = jest.fn();
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk2.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk2.generate(mockModels);
       
       const cow1 = chunk1.animals[0];
@@ -353,6 +440,14 @@ describe('Mob System End-to-End Integration', () => {
 
     beforeEach(() => {
       chunk.biome = 'Temperate';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       cow = chunk.animals[0];
     });
@@ -409,6 +504,14 @@ describe('Mob System End-to-End Integration', () => {
     test('should call chunk.update from world.update', () => {
       // Add chunk to world
       chunk.biome = 'Temperate';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       chunk.userData = { x: 0, z: 0 };
       chunk.name = 'Chunk';
@@ -430,6 +533,14 @@ describe('Mob System End-to-End Integration', () => {
     test('should update all mobs through world update loop', () => {
       // Add chunk with cow to world
       chunk.biome = 'Temperate';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       chunk.userData = { x: 0, z: 0 };
       chunk.name = 'Chunk';
@@ -454,6 +565,14 @@ describe('Mob System End-to-End Integration', () => {
     test('should complete full lifecycle: spawn, animate, move, follow terrain', () => {
       // 1. Spawn cow in appropriate biome
       chunk.biome = 'Temperate';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       
       expect(chunk.animals.length).toBe(1);
@@ -488,6 +607,14 @@ describe('Mob System End-to-End Integration', () => {
 
     test('should handle multiple update cycles correctly', () => {
       chunk.biome = 'Temperate';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       const cow = chunk.animals[0];
       
@@ -510,6 +637,14 @@ describe('Mob System End-to-End Integration', () => {
     test('should integrate with world update loop seamlessly', () => {
       // Setup world with chunk and cow
       chunk.biome = 'Jungle';
+      
+      // Set up terrain data with spawnable blocks
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          chunk.setBlockId(x, 10, z, 1); // grass block id
+        }
+      }
+      
       chunk.generate(mockModels);
       chunk.userData = { x: 0, z: 0 };
       chunk.name = 'Chunk';

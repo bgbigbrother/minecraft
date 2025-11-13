@@ -23,9 +23,13 @@ export class Chunk extends Biome {
 
     if (this.biome === 'Temperate' || this.biome === 'Jungle') {
       const cow = new Cow(models.cow);
-      cow.generate(this);
-      this.animals.push(cow);
-      this.add(cow.model);
+      const spawnSuccess = cow.generate(this);
+      
+      // Only add mob to animals array and scene if valid location found
+      if (spawnSuccess) {
+        this.animals.push(cow);
+        this.add(cow.model);
+      }
     }
 
     this.loaded = true;

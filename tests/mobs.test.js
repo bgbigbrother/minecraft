@@ -419,12 +419,16 @@ describe('MoveMob', () => {
   });
 
   describe('Spawn Positioning', () => {
-    test('should position mob at chunk center', () => {
-      mob.generate(mockChunk);
+    test('should position mob at valid spawn location', () => {
+      const result = mob.generate(mockChunk);
       
-      // First call sets X and Z with Y=0, then Y is set separately
-      expect(mob.model.position.set).toHaveBeenCalledWith(8, 0, 8);
-      expect(mob.model.position.y).toBe(11.5);
+      // Should return true for successful spawn
+      expect(result).toBe(true);
+      
+      // Should position mob somewhere in the chunk
+      expect(mob.model.position.set).toHaveBeenCalled();
+      const callArgs = mob.model.position.set.mock.calls[0];
+      expect(callArgs[1]).toBe(11.5); // Y position should be 1.5 above ground (y=10)
     });
 
     test('should store chunk reference', () => {
@@ -432,8 +436,8 @@ describe('MoveMob', () => {
       expect(mob.chunk).toBe(mockChunk);
     });
 
-    test('should calculate Y position based on terrain', () => {
-      const spy = jest.spyOn(mob, 'calculateY');
+    test('should use findValidSpawnLocation to find spawn position', () => {
+      const spy = jest.spyOn(mob, 'findValidSpawnLocation');
       mob.generate(mockChunk);
       expect(spy).toHaveBeenCalled();
     });
