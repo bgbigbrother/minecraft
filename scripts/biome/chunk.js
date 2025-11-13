@@ -33,8 +33,8 @@ export class Chunk extends Biome {
     //console.log(`Loaded chunk in ${performance.now() - start}ms`);
   }
 
-  update(deltaTime) {
-    this.animals.forEach((animal) => animal.update(deltaTime));
+  update(deltaTime, world) {
+    this.animals.forEach((animal) => animal.update(deltaTime, world));
   }
 
   /**

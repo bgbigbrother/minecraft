@@ -186,22 +186,23 @@ describe('Chunk', () => {
       chunk.animals = [mockAnimal1, mockAnimal2];
       
       const deltaTime = 0.016;
-      chunk.update(deltaTime);
+      const mockWorld = {};
+      chunk.update(deltaTime, mockWorld);
       
-      expect(mockAnimal1.update).toHaveBeenCalledWith(deltaTime);
-      expect(mockAnimal2.update).toHaveBeenCalledWith(deltaTime);
+      expect(mockAnimal1.update).toHaveBeenCalledWith(deltaTime, mockWorld);
+      expect(mockAnimal2.update).toHaveBeenCalledWith(deltaTime, mockWorld);
     });
 
     test('should handle empty animals array', () => {
       chunk.animals = [];
-      expect(() => chunk.update(0.016)).not.toThrow();
+      expect(() => chunk.update(0.016, {})).not.toThrow();
     });
 
     test('should call update on each animal once', () => {
       const mockAnimal = { update: jest.fn() };
       chunk.animals = [mockAnimal];
       
-      chunk.update(0.016);
+      chunk.update(0.016, {});
       
       expect(mockAnimal.update).toHaveBeenCalledTimes(1);
     });

@@ -145,7 +145,7 @@ describe('World', () => {
       world.update(dt, mockPlayer);
       
       world.children.forEach(chunk => {
-        expect(chunk.update).toHaveBeenCalledWith(dt);
+        expect(chunk.update).toHaveBeenCalledWith(dt, world);
       });
     });
 
