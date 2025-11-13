@@ -10,5 +10,6 @@ export const water = {
     metalness: 0.8,
     roughness: 0.2,
     side: DoubleSide
-  })
+  }),
+  spawnable: false
 };

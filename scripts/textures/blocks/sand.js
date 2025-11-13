@@ -5,5 +5,6 @@ export const sand = {
   id: 8,
   name: 'sand',
   visible: true,
-  material: new MeshLambertMaterial({ map: textures.sand })
+  material: new MeshLambertMaterial({ map: textures.sand }),
+  spawnable: false
 }

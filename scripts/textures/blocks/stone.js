@@ -6,5 +6,6 @@ export const stone = {
   name: 'stone',
   material: new MeshLambertMaterial({ map: textures.stone }),
   scale: { x: 30, y: 30, z: 30 },
-  scarcity: 0.8
+  scarcity: 0.8,
+  spawnable: false
 }

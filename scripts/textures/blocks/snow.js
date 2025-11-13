@@ -11,5 +11,6 @@ export const snow = {
     new MeshLambertMaterial({ map: textures.dirt }), // bottom
     new MeshLambertMaterial({ map: textures.snowSide }), // front
     new MeshLambertMaterial({ map: textures.snowSide })  // back
-  ]
+  ],
+  spawnable: false
 }

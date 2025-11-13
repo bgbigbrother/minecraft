@@ -29,7 +29,7 @@ describe('MoveMob', () => {
       getBlock: jest.fn((x, y, z) => {
         // Simulate dirt block at y=10
         if (y === 10) {
-          return { id: blocks.dirt.id };
+          return { id: blocks.dirt.id, spawnable: true };
         }
         return null;
       })
@@ -294,11 +294,137 @@ describe('MoveMob', () => {
     });
   });
 
+  describe('Spawnable Block Integration', () => {
+    test('should spawn on dirt blocks', () => {
+      const dirtChunk = {
+        size: { width: 16, height: 32 },
+        getBlock: jest.fn((x, y, z) => {
+          if (y === 10) {
+            return { id: blocks.dirt.id, spawnable: true };
+          }
+          return null;
+        })
+      };
+      
+      mob.chunk = dirtChunk;
+      mob.model.position.x = 8;
+      mob.model.position.z = 8;
+      
+      const y = mob.calculateY();
+      
+      expect(y).toBe(11.5); // 10 + 1.5
+    });
+
+    test('should spawn on grass blocks', () => {
+      const grassChunk = {
+        size: { width: 16, height: 32 },
+        getBlock: jest.fn((x, y, z) => {
+          if (y === 15) {
+            return { id: blocks.grass.id, spawnable: true };
+          }
+          return null;
+        })
+      };
+      
+      mob.chunk = grassChunk;
+      mob.model.position.x = 8;
+      mob.model.position.z = 8;
+      
+      const y = mob.calculateY();
+      
+      expect(y).toBe(16.5); // 15 + 1.5
+    });
+
+    test('should not spawn on stone blocks', () => {
+      const stoneChunk = {
+        size: { width: 16, height: 32 },
+        getBlock: jest.fn((x, y, z) => {
+          if (y === 10) {
+            return { id: blocks.stone.id, spawnable: false };
+          }
+          if (y === 5) {
+            return { id: blocks.dirt.id, spawnable: true };
+          }
+          return null;
+        })
+      };
+      
+      mob.chunk = stoneChunk;
+      mob.model.position.x = 8;
+      mob.model.position.z = 8;
+      
+      const y = mob.calculateY();
+      
+      // Should skip stone at y=10 and find dirt at y=5
+      expect(y).toBe(6.5); // 5 + 1.5
+    });
+
+    test('should not spawn on water blocks', () => {
+      const waterChunk = {
+        size: { width: 16, height: 32 },
+        getBlock: jest.fn((x, y, z) => {
+          if (y === 12) {
+            return { id: blocks.water.id, spawnable: false };
+          }
+          if (y === 8) {
+            return { id: blocks.grass.id, spawnable: true };
+          }
+          return null;
+        })
+      };
+      
+      mob.chunk = waterChunk;
+      mob.model.position.x = 8;
+      mob.model.position.z = 8;
+      
+      const y = mob.calculateY();
+      
+      // Should skip water at y=12 and find grass at y=8
+      expect(y).toBe(9.5); // 8 + 1.5
+    });
+
+    test('calculateY skips non-spawnable blocks', () => {
+      const mixedChunk = {
+        size: { width: 16, height: 32 },
+        getBlock: jest.fn((x, y, z) => {
+          // Multiple non-spawnable blocks before spawnable one
+          if (y === 20) {
+            return { id: blocks.stone.id, spawnable: false };
+          }
+          if (y === 18) {
+            return { id: blocks.water.id, spawnable: false };
+          }
+          if (y === 15) {
+            return { id: blocks.stone.id, spawnable: false };
+          }
+          if (y === 10) {
+            return { id: blocks.dirt.id, spawnable: true };
+          }
+          return null;
+        })
+      };
+      
+      mob.chunk = mixedChunk;
+      mob.model.position.x = 8;
+      mob.model.position.z = 8;
+      
+      const y = mob.calculateY();
+      
+      // Should skip all non-spawnable blocks and find dirt at y=10
+      expect(y).toBe(11.5); // 10 + 1.5
+      
+      // Verify it checked multiple blocks
+      expect(mixedChunk.getBlock).toHaveBeenCalled();
+    });
+  });
+
   describe('Spawn Positioning', () => {
     test('should position mob at chunk center', () => {
       mob.generate(mockChunk);
       
-      expect(mob.model.position.set).toHaveBeenCalledWith(8, 11.5, 8);
+      // First call sets X and Z with Y=0, then Y is set separately
+      expect(mob.model.position.set).toHaveBeenCalledWith(8, 0, 8);
+      expect(mob.model.position.y).toBe(11.5);
     });
 
     test('should store chunk reference', () => {
@@ -440,7 +566,7 @@ describe('Chunk-Mob Integration', () => {
         this.children.push(obj);
       }),
       getBlock: jest.fn((x, y, z) => {
-        if (y === 10) return { id: blocks.dirt.id };
+        if (y === 10) return { id: blocks.dirt.id, spawnable: true };
         return null;
       }),
       generateTerrain: jest.fn(),

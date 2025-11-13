@@ -11,5 +11,6 @@ export const jungleGrass = {
     new MeshLambertMaterial({ color: 0x80c080, map: textures.dirt }), // bottom
     new MeshLambertMaterial({ color: 0x80c080, map: textures.grassSide }), // front
     new MeshLambertMaterial({ color: 0x80c080, map: textures.grassSide })  // back
-  ]
+  ],
+  spawnable: true
 }

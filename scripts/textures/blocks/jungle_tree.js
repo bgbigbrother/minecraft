@@ -11,5 +11,6 @@ export const jungleTree = {
     new MeshLambertMaterial({ map: textures.jungleTreeTop }),  // bottom
     new MeshLambertMaterial({ map: textures.jungleTreeSide }), // front
     new MeshLambertMaterial({ map: textures.jungleTreeSide })  // back
-  ]
+  ],
+  spawnable: false
 }

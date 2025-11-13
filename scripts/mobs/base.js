@@ -50,17 +50,23 @@ export class MoveMob {
 
     generate(chunk) {
         this.chunk = chunk;
+        // Set X and Z position first, then calculate Y based on terrain
+        this.model.position.set(chunk.size.width / 2 , 0, chunk.size.width / 2);
         const y = this.calculateY();
-        this.model.position.set(chunk.size.width / 2 , y, chunk.size.width / 2);
+        this.model.position.y = y;
     }
 
     calculateY() {
         let cowY = parseInt(this.model.position.y);
         for(let y = this.chunk.size.height; y > 0; y--) {
           const block = this.chunk.getBlock(parseInt(this.model.position.x), y, parseInt(this.model.position.z));
-          if(block && block.id == blocks.dirt.id) {
-            cowY = y + 1.5;
-            break
+          if(block && block.id) {
+            // Look up the block definition from the blocks registry
+            const blockDef = Object.values(blocks).find(b => b.id === block.id);
+            if(blockDef && blockDef.spawnable) {
+              cowY = y + 1.5;
+              break;
+            }
           }
         }
         return cowY;

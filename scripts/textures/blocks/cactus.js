@@ -11,5 +11,6 @@ export const cactus = {
     new MeshLambertMaterial({ map: textures.cactusTop }),  // bottom
     new MeshLambertMaterial({ map: textures.cactusSide }), // front
     new MeshLambertMaterial({ map: textures.cactusSide })  // back
-  ]
+  ],
+  spawnable: false
 }

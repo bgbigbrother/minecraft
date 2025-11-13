@@ -12,5 +12,6 @@ export const tree = {
     new MeshLambertMaterial({ map: textures.treeTop }), // bottom
     new MeshLambertMaterial({ map: textures.treeSide }), // front
     new MeshLambertMaterial({ map: textures.treeSide })  // back
-  ]
+  ],
+  spawnable: false
 }

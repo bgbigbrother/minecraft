@@ -11,5 +11,6 @@ export const grass = {
       new MeshLambertMaterial({ map: textures.dirt }),      // bottom
       new MeshLambertMaterial({ map: textures.grassSide }), // front
       new MeshLambertMaterial({ map: textures.grassSide })  // back
-    ]
+    ],
+    spawnable: true
 }

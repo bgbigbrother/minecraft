@@ -6,5 +6,6 @@ export const coalOre = {
   name: 'coal_ore',
   material: new MeshLambertMaterial({ map: textures.coalOre }),
   scale: { x: 20, y: 20, z: 20 },
-  scarcity: 0.8
+  scarcity: 0.8,
+  spawnable: false
 }

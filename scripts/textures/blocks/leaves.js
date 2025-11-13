@@ -5,5 +5,6 @@ export const leaves = {
   id: 7,
   name: 'leaves',
   visible: true,
-  material: new MeshLambertMaterial({ map: textures.leaves })
+  material: new MeshLambertMaterial({ map: textures.leaves }),
+  spawnable: false
 }

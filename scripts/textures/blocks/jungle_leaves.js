@@ -4,5 +4,6 @@ import { textures } from '../textures';
 export const jungleLeaves = {
   id: 12,
   name: 'jungleLeaves',
-  material: new MeshLambertMaterial({ map: textures.jungleLeaves })
+  material: new MeshLambertMaterial({ map: textures.jungleLeaves }),
+  spawnable: false
 }
