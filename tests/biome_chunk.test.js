@@ -1,6 +1,17 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import { Chunk } from '../scripts/biome/chunk.js';
 
+// Mock SkeletonUtils
+jest.mock('three/examples/jsm/utils/SkeletonUtils.js', () => ({
+  clone: jest.fn((model) => ({
+    ...model,
+    position: { x: 0, y: 0, z: 0, set: jest.fn() },
+    rotateY: jest.fn(),
+    scale: { set: jest.fn() },
+    name: model.name || ''
+  }))
+}));
+
 // Mock dependencies
 jest.mock('../scripts/mobs/cow.js', () => ({
   Cow: class MockCow {
@@ -77,7 +88,28 @@ describe('Chunk', () => {
     };
 
     mockModels = {
-      cow: { name: 'CowModel' }
+      cow: { 
+        model: { name: 'CowModel' },
+        animations: []
+      },
+      testMob: {
+        model: { 
+          name: 'TestMob',
+          position: { x: 0, y: 0, z: 0, set: jest.fn() },
+          rotateY: jest.fn(),
+          scale: { set: jest.fn() },
+          clone: jest.fn(function() {
+            return {
+              name: 'TestMob',
+              position: { x: 0, y: 0, z: 0, set: jest.fn() },
+              rotateY: jest.fn(),
+              scale: { set: jest.fn() },
+              clone: this.clone
+            };
+          })
+        },
+        animations: []
+      }
     };
 
     chunk = new Chunk(32, mockParams, mockDataStore);

@@ -262,4 +262,23 @@ export class AnimationClip {
   }
 }
 
+export class EdgesGeometry {
+  constructor(geometry) {
+    this.geometry = geometry;
+  }
+}
+
+export class LineBasicMaterial {
+  constructor(params = {}) {
+    this.color = params.color || 0xffffff;
+    this.linewidth = params.linewidth || 1;
+  }
+}
+
+export class LineSegments extends Mesh {
+  constructor(geometry, material) {
+    super(geometry, material);
+  }
+}
+
 export const DoubleSide = 2;
