@@ -1,4 +1,5 @@
-import { Cow } from '../mobs/cow';
+// import { Cow } from '../mobs/cow';
+import { MoveMob } from '../mobs/base';
 import { Biome } from './biome';
 
 export class Chunk extends Biome {
@@ -21,15 +22,17 @@ export class Chunk extends Biome {
     this.loadPlayerChanges();
     this.generateMeshes();
 
+    // Spawn test mob in temperate/jungle chunks for testing
     if (this.biome === 'Temperate' || this.biome === 'Jungle') {
-      const cow = new Cow(models.cow);
-      const spawnSuccess = cow.generate(this);
-      
-      // Only add mob to animals array and scene if valid location found
-      if (spawnSuccess) {
-        this.animals.push(cow);
-        this.add(cow.model);
-      }
+      // const cow = new Cow(models.cow);
+      // cow.generate(this);
+      // this.animals.push(cow);
+      // this.add(cow.model);
+
+      const mob = new MoveMob(models.testMob);
+      mob.generate(this);
+      this.animals.push(mob);
+      this.add(mob.model);
     }
 
     this.loaded = true;
