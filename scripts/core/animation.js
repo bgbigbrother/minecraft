@@ -24,7 +24,7 @@ export function animate(player, world, dayNightCycle, toolbarUI) {
   // Only update physics and game logic when player controls are locked (in first-person mode)
   if (player.controls.isLocked) {
     // Start background music
-    document.querySelector("audio").play();
+    document.getElementById("theme-music").play();
     
     // Update player physics and world chunks
     player.update(dt, world);
@@ -69,7 +69,7 @@ export function animate(player, world, dayNightCycle, toolbarUI) {
     controls.target.copy(player.position);
   } else {
     // When controls are unlocked (menu/pause), pause music and show player character
-    document.querySelector("audio").pause();
+    document.getElementById("theme-music").pause();
     player.character.visible = true; // Show player model in third-person view
     player.tool.container.visible = false; // Hide first-person tool
   }

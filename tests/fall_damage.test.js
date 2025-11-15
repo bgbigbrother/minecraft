@@ -151,6 +151,15 @@ jest.mock('../scripts/textures/blocks.js', () => ({
   }
 }));
 
+// Mock LandingSoundGenerator
+jest.mock('../scripts/audio/landingSoundGenerator.js', () => ({
+  LandingSoundGenerator: jest.fn().mockImplementation(function() {
+    this.play = jest.fn();
+    this.init = jest.fn();
+    return this;
+  })
+}));
+
 describe('Fall Damage System', () => {
   let PlayerBase;
   let player;

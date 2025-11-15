@@ -1,7 +1,8 @@
 import { Vector3, Vector2, PerspectiveCamera, CameraHelper, Raycaster, Group, Mesh, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, BoxGeometry, Euler, Matrix4, Fog } from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { blocks } from '../textures/blocks.js';
-import { simpleCharacter } from './body/simple'
+import { simpleCharacter } from './body/simple';
+import { LandingSoundGenerator } from '../audio/landingSoundGenerator.js';
 
 /**
  * Base player class
@@ -95,6 +96,9 @@ export class PlayerBase {
         const selectionGeometry = new BoxGeometry(1.01, 1.01, 1.01); // Slightly larger than block
         this.selectionHelper = new Mesh(selectionGeometry, selectionMaterial);
         
+        // Initialize landing sound generator
+        this.landingSoundGenerator = new LandingSoundGenerator();
+        
         // Initialize fall damage tracking
         this.initializeFallDamage();
         
@@ -145,6 +149,9 @@ export class PlayerBase {
         if (this.isFalling && this.onGround) {
             // Calculate fall distance
             const fallDistance = this.fallStartY - this.position.y;
+            
+            // Play landing sound for any fall (volume based on distance)
+            this.playLandingSound(fallDistance);
             
             // Apply damage if fall exceeds safe height and no spawn immunity
             if (fallDistance > 3 && !hasSpawnImmunity) {
@@ -337,6 +344,22 @@ export class PlayerBase {
         // Rotate velocity delta from world space to camera space
         dv.applyEuler(new Euler(0, -this.camera.rotation.y, 0));
         this.velocity.add(dv);
+    }
+
+    /**
+     * Plays landing sound when player hits the ground
+     * Volume scales with fall distance for more realistic feedback
+     * @param {number} fallDistance - Distance fallen in blocks
+     */
+    playLandingSound(fallDistance) {
+        if (fallDistance > 3) { // Only play for falls > 0.5 blocks
+            // Scale volume based on fall distance (0.2 to 1.0)
+            // Short falls are quieter, long falls are louder
+            const volume = Math.min(1.0, (fallDistance / 10));
+            
+            // Play procedurally generated landing sound
+            this.landingSoundGenerator.play(volume);
+        }
     }
 
     /**

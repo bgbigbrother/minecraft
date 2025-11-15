@@ -110,6 +110,12 @@ describe('Animation Module', () => {
       pause: jest.fn()
     };
     document.querySelector = jest.fn(() => mockAudio);
+    document.getElementById = jest.fn((id) => {
+      if (id === 'theme-music') {
+        return mockAudio;
+      }
+      return null;
+    });
 
     // Mock requestAnimationFrame
     global.requestAnimationFrame = jest.fn((cb) => cb);
@@ -187,7 +193,7 @@ describe('Animation Module', () => {
     
     animate(mockPlayer, mockWorld, mockDayNightCycle);
     
-    expect(document.querySelector).toHaveBeenCalledWith('audio');
+    expect(document.getElementById).toHaveBeenCalledWith('theme-music');
     expect(mockAudio.play).toHaveBeenCalled();
   });
 
@@ -239,6 +245,7 @@ describe('Animation Module', () => {
     
     animate(mockPlayer, mockWorld, mockDayNightCycle);
     
+    expect(document.getElementById).toHaveBeenCalledWith('theme-music');
     expect(mockAudio.pause).toHaveBeenCalled();
     expect(mockAudio.play).not.toHaveBeenCalled();
   });
