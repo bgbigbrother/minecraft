@@ -144,27 +144,24 @@ export class ControllsPlayerBase extends PlayerBase {
                 // Remove selection from current toolbar slot
                 const currentSlot = this.getActiveSlot();
                 document.getElementById(`toolbar-${currentSlot}`)?.classList.remove('selected');
-                
-                // Add selection to new toolbar slot
-                document.getElementById(`toolbar-${slotNumber}`)?.classList.add('selected');
 
                 // Get the block ID from the toolbar slot contents
                 if (slotNumber === 0) {
                     // Slot 0 is always the pickaxe (empty block ID)
                     this.activeBlockId = blocks.empty.id;
                     this.tool.container.visible = true;
+                    document.getElementById('toolbar-0')?.classList.add('selected');
                 } else {
                     // Get the block ID from the toolbar UI slot contents
                     const blockIdInSlot = this.getBlockIdFromSlot(slotNumber);
                     if (blockIdInSlot !== null) {
                         this.activeBlockId = blockIdInSlot;
                         this.tool.container.visible = false;
+                        document.getElementById(`toolbar-${slotNumber}`)?.classList.add('selected');
                     } else {
                         // Slot is empty, switch to pickaxe
                         this.activeBlockId = blocks.empty.id;
                         this.tool.container.visible = true;
-                        // Update visual selection to pickaxe
-                        document.getElementById(`toolbar-${slotNumber}`)?.classList.remove('selected');
                         document.getElementById('toolbar-0')?.classList.add('selected');
                     }
                 }
