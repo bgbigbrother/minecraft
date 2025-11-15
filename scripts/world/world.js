@@ -15,7 +15,7 @@ export class World extends EditChunkStoreWorldBaseClass {
     this.toolbarUI = null;
     
     // Creative mode: allows unlimited block placement without inventory checks
-    this.creativeMode = true;
+    this.creativeMode = false;
   }
   
   /**
