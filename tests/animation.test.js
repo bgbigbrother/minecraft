@@ -63,7 +63,8 @@ jest.mock('../scripts/core/renderer', () => ({
 jest.mock('../scripts/core/stats', () => ({
   stats: {
     update: jest.fn()
-  }
+  },
+  isStatsEnabled: jest.fn(() => true)
 }));
 
 jest.mock('../scripts/core/scene', () => ({

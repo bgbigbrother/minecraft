@@ -4,7 +4,7 @@ import { moonMesh } from './moon';
 import { orbitCamera } from './camera';
 import { controls } from './controls';
 import { renderer } from './renderer';
-import { stats } from './stats';
+import { stats, isStatsEnabled } from './stats';
 import { scene } from './scene';
 import { ItemCollector } from '../inventory/ItemCollector.js';
 
@@ -77,8 +77,10 @@ export function animate(player, world, dayNightCycle, toolbarUI) {
   // Render the scene using either first-person or orbit camera
   renderer.render(scene, player.controls.isLocked ? player.camera : orbitCamera);
   
-  // Update performance stats display
-  stats.update();
+  // Update performance stats display (only if enabled)
+  if (isStatsEnabled()) {
+    stats.update();
+  }
 
   // Store current time for next frame's delta calculation
   previousTime = currentTime;

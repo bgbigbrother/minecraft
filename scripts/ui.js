@@ -1,5 +1,6 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { resources } from './textures/resources';
+import { setStatsEnabled } from './core/stats';
 
 /**
  * Sets up the UI controls
@@ -11,12 +12,31 @@ export function setupUI(world, player, physics, scene) {
   // Create the debug GUI panel
   const gui = new GUI();
 
+  // Performance stats toggle
+  const statsConfig = { showStats: false };
+  gui.add(statsConfig, 'showStats').name('Show FPS Stats').onChange((value) => {
+    setStatsEnabled(value);
+  });
+
   // Player controls folder - adjust movement and debug visualization
   const playerFolder = gui.addFolder('Player').close();
   playerFolder.add(player, 'maxSpeed', 1, 500, 0.1).name('Max Speed'); // Walking/sprinting speed
   playerFolder.add(player, 'jumpSpeed', 1, 250, 0.1).name('Jump Speed'); // Jump velocity
   playerFolder.add(player.boundsHelper, 'visible').name('Show Player Bounds'); // Show collision box
   playerFolder.add(player.cameraHelper, 'visible').name('Show Camera Helper'); // Show camera frustum
+  
+  // Health system controls
+  const healthFolder = playerFolder.addFolder('Health').close();
+  healthFolder.add(player, 'maxHealth', 1, 1000, 1).name('Max Health').onChange(() => {
+    player.health = Math.min(player.health, player.maxHealth);
+    player.updateHealthBar();
+  });
+  healthFolder.add(player, 'health', 0, player.maxHealth, 1).name('Current Health').listen().onChange(() => {
+    player.updateHealthBar();
+  });
+  healthFolder.add({ damage: () => player.takeDamage(10) }, 'damage').name('Take 10 Damage');
+  healthFolder.add({ heal: () => player.heal(10) }, 'heal').name('Heal 10 HP');
+  healthFolder.add({ fullHeal: () => player.setHealth(player.maxHealth) }, 'fullHeal').name('Full Heal');
 
   // Physics controls folder - adjust simulation parameters
   const physicsFolder = gui.addFolder('Physics').close();

@@ -1,6 +1,4 @@
-import * as THREE from 'three';
 import { World } from '../world/world';
-import { blocks } from '../textures/blocks';
 import { ToolControllsPlayerBase } from './tool';
 import { InventoryManager } from '../inventory/InventoryManager';
 
@@ -41,6 +39,9 @@ export class Player extends  ToolControllsPlayerBase {
     if (this.tool.animate) {
       this.updateToolAnimation();
     }
+    
+    // Update fall damage tracking after physics update
+    this.updateFallDamage(dt);
     
     // Update fog based on water immersion
     this.updateSceneFog();

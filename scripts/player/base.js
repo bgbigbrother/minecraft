@@ -12,6 +12,17 @@ export class PlayerBase {
     height = 2; // Player height in blocks
     radius = 0.5; // Player radius for collision detection
     
+    // Health system
+    maxHealth = 100; // Maximum health (configurable)
+    health = 100; // Current health
+    
+    // Fall damage tracking
+    fallStartY = null; // Y position where current fall started (null when not falling)
+    isFalling = false; // Whether player is currently in a falling state
+    gameStartTime = null; // Timestamp when pointer controls were first locked (for immunity)
+    spawnImmunityDuration = 5000; // 5 seconds in milliseconds
+    damagePerBlock = 0.01; // 1% damage per block after the 3rd one
+    
     // Movement parameters
     maxSpeed = 5; // Maximum walking speed
     jumpSpeed = 10; // Initial jump velocity
@@ -83,6 +94,75 @@ export class PlayerBase {
         });
         const selectionGeometry = new BoxGeometry(1.01, 1.01, 1.01); // Slightly larger than block
         this.selectionHelper = new Mesh(selectionGeometry, selectionMaterial);
+        
+        // Initialize fall damage tracking
+        this.initializeFallDamage();
+        
+        // Initialize health bar UI
+        setTimeout(() => this.updateHealthBar(), 0);
+    }
+
+    /**
+     * Initializes fall damage tracking system
+     * Sets initial fall state (gameStartTime will be set on first pointer lock)
+     */
+    initializeFallDamage() {
+        this.gameStartTime = null;
+        this.fallStartY = null;
+        this.isFalling = false;
+    }
+
+    /**
+     * Updates fall damage tracking and applies damage when player lands
+     * @param {Number} dt - Delta time in seconds since last frame
+     */
+    updateFallDamage(dt) {
+        // Record game start time on first pointer lock
+        if (this.controls.isLocked && this.gameStartTime === null) {
+            this.gameStartTime = performance.now();
+        }
+        
+        // Check spawn immunity (only if game has started)
+        let hasSpawnImmunity = false;
+        if (this.gameStartTime !== null) {
+            const timeSinceGameStart = performance.now() - this.gameStartTime;
+            hasSpawnImmunity = timeSinceGameStart < this.spawnImmunityDuration;
+        }
+        
+        // Detect fall start: moving down and not on ground
+        if (this.velocity.y < 0 && !this.onGround) {
+            if (!this.isFalling) {
+                // Start of new fall
+                this.isFalling = true;
+                this.fallStartY = this.position.y;
+            } else {
+                // Continue tracking highest point during fall
+                this.fallStartY = Math.max(this.fallStartY, this.position.y);
+            }
+        }
+        
+        // Detect landing: was falling and now on ground
+        if (this.isFalling && this.onGround) {
+            // Calculate fall distance
+            const fallDistance = this.fallStartY - this.position.y;
+            
+            // Apply damage if fall exceeds safe height and no spawn immunity
+            if (fallDistance > 3 && !hasSpawnImmunity) {
+                const blocksAboveThreshold = fallDistance - 3;
+                const damageAmount = blocksAboveThreshold * (this.maxHealth * this.damagePerBlock); // 1% per block
+                this.takeDamage(damageAmount);
+            }
+            
+            // Reset fall tracking
+            this.isFalling = false;
+            this.fallStartY = null;
+        }
+        
+        // Reset fall tracking if moving upward (jumping, swimming up)
+        if (this.velocity.y > 0) {
+            this.isFalling = false;
+            this.fallStartY = null;
+        }
     }
 
     /**
@@ -257,6 +337,56 @@ export class PlayerBase {
         // Rotate velocity delta from world space to camera space
         dv.applyEuler(new Euler(0, -this.camera.rotation.y, 0));
         this.velocity.add(dv);
+    }
+
+    /**
+     * Damages the player by a specified amount
+     * @param {number} amount - Amount of damage to apply
+     */
+    takeDamage(amount) {
+        this.health = Math.max(0, this.health - amount);
+        this.updateHealthBar();
+    }
+
+    /**
+     * Heals the player by a specified amount
+     * @param {number} amount - Amount of health to restore
+     */
+    heal(amount) {
+        this.health = Math.min(this.maxHealth, this.health + amount);
+        this.updateHealthBar();
+    }
+
+    /**
+     * Sets the player's health to a specific value
+     * @param {number} value - New health value
+     */
+    setHealth(value) {
+        this.health = Math.max(0, Math.min(this.maxHealth, value));
+        this.updateHealthBar();
+    }
+
+    /**
+     * Updates the health bar UI to reflect current health
+     */
+    updateHealthBar() {
+        const healthBar = document.getElementById('health-bar-fill');
+        if (healthBar) {
+            const healthPercent = (this.health / this.maxHealth) * 100;
+            healthBar.style.width = `${healthPercent}%`;
+            
+            // Update color based on health percentagew
+            if (healthPercent >= 70) {
+                // Green gradient for 70-100%
+                healthBar.style.background = 'linear-gradient(to bottom, #126c12ff, #083808ff)';
+            } else if (healthPercent >= 30) {
+                // Yellow gradient for 30-70%
+                healthBar.style.background = 'linear-gradient(to bottom, #e2e251ff, #4a4a0bff)';
+            } else {
+                // Red gradient for 0-30%
+                healthBar.style.background = 'linear-gradient(to bottom, #ff4444, #cc0000)';
+            }
+        }
     }
 
     /**
