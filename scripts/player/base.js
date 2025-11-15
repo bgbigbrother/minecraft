@@ -22,7 +22,7 @@ export class PlayerBase {
     isFalling = false; // Whether player is currently in a falling state
     gameStartTime = null; // Timestamp when pointer controls were first locked (for immunity)
     spawnImmunityDuration = 5000; // 5 seconds in milliseconds
-    damagePerBlock = 0.01; // 1% damage per block after the 3rd one
+    damagePerBlock = 0.05; // 5% damage per block after the 3rd one
     
     // Movement parameters
     maxSpeed = 5; // Maximum walking speed

@@ -12,6 +12,7 @@ import { DayNightCycle } from './core/day_night_cycle';
 import { sun, sunMesh } from './core/sun';
 import { moonMesh } from './core/moon';
 import { ToolbarUI } from './inventory/ToolbarUI';
+import { GameOverSystem } from './player/gameOver';
 
 /**
  * Main application entry point
@@ -27,6 +28,9 @@ new ModelLoader((models) => {
     const player = new Player(scene, world);
     const physics = new Physics(scene);
     player.addPhysics(physics); // Attach physics system to player
+
+    // Initialize game over system to handle death and respawn
+    const gameOverSystem = new GameOverSystem(player, world);
 
     // Initialize toolbar UI with player's inventory
     const toolbarUI = new ToolbarUI(player.inventory);
@@ -47,5 +51,5 @@ new ModelLoader((models) => {
     // Create DayNightCycle instance with all required parameters
     const dayNightCycle = new DayNightCycle(scene, sun, sunMesh, moonMesh, ambientLight, world);
     
-    animate.call(this, player, world, dayNightCycle, toolbarUI);
+    animate.call(this, player, world, dayNightCycle, toolbarUI, gameOverSystem);
 });

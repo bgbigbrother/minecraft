@@ -336,7 +336,7 @@ describe('Fall Damage System', () => {
       player.updateFallDamage(0.016);
 
       // Expected damage: (4 - 3) * (100 * 0.01) = 1
-      expect(player.health).toBe(99);
+      expect(player.health).toBe(95);
     });
 
     test('should calculate correct damage for 10 block fall', () => {
@@ -352,7 +352,7 @@ describe('Fall Damage System', () => {
       player.updateFallDamage(0.016);
 
       // Expected damage: (10 - 3) * (100 * 0.01) = 7
-      expect(player.health).toBe(93);
+      expect(player.health).toBe(65);
     });
 
     test('should calculate correct damage for 20 block fall', () => {
@@ -368,7 +368,7 @@ describe('Fall Damage System', () => {
       player.updateFallDamage(0.016);
 
       // Expected damage: (20 - 3) * (100 * 0.01) = 17
-      expect(player.health).toBe(83);
+      expect(player.health).toBe(15);
     });
 
     test('should update health bar after fall damage', () => {
@@ -383,7 +383,7 @@ describe('Fall Damage System', () => {
       player.onGround = true;
       player.updateFallDamage(0.016);
 
-      expect(mockHealthBarFill.style.width).toBe('93%');
+      expect(mockHealthBarFill.style.width).toBe('65%');
     });
   });
 
@@ -428,7 +428,7 @@ describe('Fall Damage System', () => {
       player.updateFallDamage(0.016);
 
       // Should take damage: (10 - 3) * 1 = 7
-      expect(player.health).toBe(93);
+      expect(player.health).toBe(65);
     });
 
     test('should not apply damage at exactly 5 seconds (boundary)', () => {
@@ -471,7 +471,7 @@ describe('Fall Damage System', () => {
       player.updateFallDamage(0.016);
 
       // Should take damage
-      expect(player.health).toBe(93);
+      expect(player.health).toBe(65);
     });
   });
 
@@ -492,7 +492,7 @@ describe('Fall Damage System', () => {
       player.onGround = true;
       player.updateFallDamage(0.016);
 
-      expect(player.health).toBe(93); // Lost 7 health
+      expect(player.health).toBe(65); // Lost 7 health
 
       // Reset for second fall
       player.onGround = false;
@@ -505,7 +505,7 @@ describe('Fall Damage System', () => {
       player.onGround = true;
       player.updateFallDamage(0.016);
 
-      expect(player.health).toBe(86); // Lost another 7 health
+      expect(player.health).toBe(30); // Lost another 7 health
     });
 
     test('should handle jumping during a fall', () => {
@@ -535,7 +535,7 @@ describe('Fall Damage System', () => {
       player.updateFallDamage(0.016);
 
       // Should only take damage for 5 block fall, not the original 20
-      expect(player.health).toBe(98); // (5 - 3) * 1 = 2 damage
+      expect(player.health).toBe(90); // (5 - 3) * 1 = 2 damage
     });
 
     test('should handle landing and immediately falling again', () => {
@@ -550,7 +550,7 @@ describe('Fall Damage System', () => {
       player.onGround = true;
       player.updateFallDamage(0.016);
 
-      expect(player.health).toBe(98); // (5 - 3) * 1 = 2 damage
+      expect(player.health).toBe(90); // (5 - 3) * 1 = 2 damage
       expect(player.isFalling).toBe(false);
 
       // Immediately fall again
@@ -567,7 +567,7 @@ describe('Fall Damage System', () => {
       player.onGround = true;
       player.updateFallDamage(0.016);
 
-      expect(player.health).toBe(96); // Lost another 2 health
+      expect(player.health).toBe(80); // Lost another 2 health
     });
 
     test('should handle extreme fall distances (100+ blocks)', () => {

@@ -34,6 +34,15 @@ export function setupUI(world, player, physics, scene) {
   healthFolder.add(player, 'health', 0, player.maxHealth, 1).name('Current Health').listen().onChange(() => {
     player.updateHealthBar();
   });
+  
+  // Fall damage control - convert to percentage for display (0-100%)
+  const fallDamageConfig = {
+    damagePercent: player.damagePerBlock * 100
+  };
+  healthFolder.add(fallDamageConfig, 'damagePercent', 0, 100, 0.1).name('Fall Damage %').onChange((value) => {
+    player.damagePerBlock = value / 100;
+  });
+  
   healthFolder.add({ damage: () => player.takeDamage(10) }, 'damage').name('Take 10 Damage');
   healthFolder.add({ heal: () => player.heal(10) }, 'heal').name('Heal 10 HP');
   healthFolder.add({ fullHeal: () => player.setHealth(player.maxHealth) }, 'fullHeal').name('Full Heal');

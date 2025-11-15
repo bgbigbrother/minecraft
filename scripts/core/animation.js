@@ -13,9 +13,9 @@ import { ItemCollector } from '../inventory/ItemCollector.js';
  * Called every frame to update game state and render the scene
  */
 let previousTime = performance.now();
-export function animate(player, world, dayNightCycle, toolbarUI) {
+export function animate(player, world, dayNightCycle, toolbarUI, gameOverSystem) {
   // Schedule next frame
-  requestAnimationFrame(animate.bind(this, player, world, dayNightCycle, toolbarUI));
+  requestAnimationFrame(animate.bind(this, player, world, dayNightCycle, toolbarUI, gameOverSystem));
 
   // Calculate delta time (time since last frame) in seconds
   const currentTime = performance.now();
@@ -29,6 +29,11 @@ export function animate(player, world, dayNightCycle, toolbarUI) {
     // Update player physics and world chunks
     player.update(dt, world);
     world.update(dt, player);
+
+    // Update game over system to check for death condition
+    if (gameOverSystem) {
+      gameOverSystem.update(dt);
+    }
 
     // Update all dropped items (physics and rotation)
     if (world.droppedItems && world.droppedItems.length > 0) {
