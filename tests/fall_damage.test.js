@@ -627,4 +627,202 @@ describe('Fall Damage System', () => {
       expect(player.isFalling).toBe(false);
     });
   });
+
+  describe('Health Regeneration System', () => {
+    describe('Regeneration Initialization', () => {
+      test('should initialize healthRegenRate to 0.01', () => {
+        expect(player.healthRegenRate).toBe(0.01);
+      });
+
+      test('should allow healthRegenRate to be configured to different values', () => {
+        player.healthRegenRate = 0.05;
+        expect(player.healthRegenRate).toBe(0.05);
+
+        player.healthRegenRate = 0.02;
+        expect(player.healthRegenRate).toBe(0.02);
+      });
+    });
+
+    describe('Regeneration Logic', () => {
+      beforeEach(() => {
+        // Enable controls for regeneration to work
+        player.controls.isLocked = true;
+      });
+
+      test('should apply regeneration when health < maxHealth', () => {
+        player.health = 50;
+        const initialHealth = player.health;
+
+        // Simulate 1 second of regeneration (60 frames at 60fps)
+        for (let i = 0; i < 60; i++) {
+          player.updateHealthRegeneration(1/60);
+        }
+
+        expect(player.health).toBeGreaterThan(initialHealth);
+      });
+
+      test('should not apply regeneration when health = maxHealth', () => {
+        player.health = player.maxHealth;
+
+        player.updateHealthRegeneration(1);
+
+        expect(player.health).toBe(player.maxHealth);
+      });
+
+      test('should calculate regeneration amount correctly with different dt values', () => {
+        player.health = 50;
+        player.healthRegenRate = 0.01; // 1% per minute
+
+        // Test with dt = 1 second
+        const expectedRegenPerSecond = (0.01 * 100 / 60);
+        player.updateHealthRegeneration(1);
+        
+        expect(player.health).toBeCloseTo(50 + expectedRegenPerSecond, 5);
+
+        // Reset and test with dt = 0.5 seconds
+        player.health = 50;
+        const expectedRegenHalfSecond = (0.01 * 100 / 60) * 0.5;
+        player.updateHealthRegeneration(0.5);
+        
+        expect(player.health).toBeCloseTo(50 + expectedRegenHalfSecond, 5);
+      });
+
+      test('should ensure health never exceeds maxHealth', () => {
+        player.health = 99.9;
+        player.healthRegenRate = 0.1; // High regen rate
+
+        player.updateHealthRegeneration(1);
+
+        expect(player.health).toBe(player.maxHealth);
+        expect(player.health).toBeLessThanOrEqual(player.maxHealth);
+      });
+
+      test('should not regenerate when controls are not locked', () => {
+        player.controls.isLocked = false;
+        player.health = 50;
+        const initialHealth = player.health;
+
+        player.updateHealthRegeneration(1);
+
+        expect(player.health).toBe(initialHealth);
+      });
+
+      test('should regenerate at correct rate with custom healthRegenRate', () => {
+        player.health = 50;
+        player.healthRegenRate = 0.05; // 5% per minute
+
+        // Simulate 1 second
+        player.updateHealthRegeneration(1);
+
+        const expectedRegen = (0.05 * 100 / 60) * 1;
+        expect(player.health).toBeCloseTo(50 + expectedRegen, 5);
+      });
+
+      test('should accumulate regeneration over multiple frames', () => {
+        player.health = 50;
+        player.healthRegenRate = 0.01; // 1% per minute
+
+        // Simulate 60 seconds (1 minute) at 60fps
+        for (let i = 0; i < 60 * 60; i++) {
+          player.updateHealthRegeneration(1/60);
+        }
+
+        // After 1 minute at 1% per minute, should gain 1 HP
+        expect(player.health).toBeCloseTo(51, 1);
+      });
+    });
+
+    describe('Regeneration Integration', () => {
+      beforeEach(() => {
+        // Enable controls and advance past spawn immunity
+        player.controls.isLocked = true;
+        performance.now.setTime(6000);
+      });
+
+      test('should call regeneration during updateFallDamage', () => {
+        player.health = 50;
+        const initialHealth = player.health;
+
+        // Call updateFallDamage which should call updateHealthRegeneration
+        player.updateFallDamage(1);
+
+        expect(player.health).toBeGreaterThan(initialHealth);
+      });
+
+      test('should update health bar after regeneration', () => {
+        player.health = 50;
+        mockHealthBarFill.style.width = '50%';
+
+        // Regenerate some health
+        player.updateHealthRegeneration(10);
+
+        // Health bar should be updated
+        expect(mockHealthBarFill.style.width).not.toBe('50%');
+        expect(parseFloat(mockHealthBarFill.style.width)).toBeGreaterThan(50);
+      });
+
+      test('should work with different healthRegenRate values', () => {
+        // Test with 2% per minute
+        player.health = 50;
+        player.healthRegenRate = 0.02;
+        
+        player.updateHealthRegeneration(1);
+        const health1 = player.health;
+
+        // Test with 10% per minute
+        player.health = 50;
+        player.healthRegenRate = 0.10;
+        
+        player.updateHealthRegeneration(1);
+        const health2 = player.health;
+
+        // Higher regen rate should result in more health gained
+        expect(health2 - 50).toBeGreaterThan(health1 - 50);
+      });
+
+      test('should regenerate health after taking fall damage', () => {
+        // Set gameStartTime to enable damage (past spawn immunity)
+        player.gameStartTime = 0;
+        performance.now.setTime(6000);
+        
+        // Take fall damage
+        player.velocity.y = -1;
+        player.onGround = false;
+        player.position.y = 20;
+        player.updateFallDamage(0.016);
+
+        player.position.y = 10;
+        player.onGround = true;
+        player.updateFallDamage(0.016);
+
+        // Expected damage: (10 - 3) * (100 * 0.05) = 35 damage
+        const healthAfterFall = player.health;
+        expect(healthAfterFall).toBeLessThan(100);
+
+        // Simulate regeneration over time
+        player.onGround = true;
+        player.velocity.y = 0;
+        
+        for (let i = 0; i < 60; i++) {
+          player.updateFallDamage(1/60);
+        }
+
+        // Should have regenerated some health
+        expect(player.health).toBeGreaterThan(healthAfterFall);
+      });
+
+      test('should stop regenerating when reaching maxHealth', () => {
+        player.health = 99.5;
+        player.healthRegenRate = 0.01;
+
+        // Regenerate multiple times
+        for (let i = 0; i < 100; i++) {
+          player.updateHealthRegeneration(1);
+        }
+
+        // Should cap at maxHealth
+        expect(player.health).toBe(player.maxHealth);
+      });
+    });
+  });
 });

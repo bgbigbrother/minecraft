@@ -114,6 +114,7 @@ export class PlayerBase {
         this.gameStartTime = null;
         this.fallStartY = null;
         this.isFalling = false;
+        this.healthRegenRate = 0.01; // 1% per minute
     }
 
     /**
@@ -169,6 +170,29 @@ export class PlayerBase {
         if (this.velocity.y > 0) {
             this.isFalling = false;
             this.fallStartY = null;
+        }
+        
+        // Apply health regeneration
+        this.updateHealthRegeneration(dt);
+    }
+
+    /**
+     * Updates health regeneration over time
+     * @param {Number} dt - Delta time in seconds since last frame
+     */
+    updateHealthRegeneration(dt) {
+        // Only regenerate if health is below maximum and controls are active
+        if (this.health < this.maxHealth && this.controls.isLocked) {
+            // Calculate regeneration amount
+            // healthRegenRate is % per minute, dt is in seconds
+            // Convert: (rate / 60) * dt gives regeneration per frame
+            const regenAmount = (this.healthRegenRate * this.maxHealth / 60) * dt;
+            
+            // Apply regeneration without exceeding max health
+            this.health = Math.min(this.maxHealth, this.health + regenAmount);
+            
+            // Update health bar
+            this.updateHealthBar();
         }
     }
 
