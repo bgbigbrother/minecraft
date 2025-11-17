@@ -25,10 +25,8 @@ export class ItemThrower {
     
     // Multiply direction by throw distance and add to player position
     throwPosition.x += direction.x * this.THROW_DISTANCE;
+    throwPosition.y += direction.y - player.height / 2;
     throwPosition.z += direction.z * this.THROW_DISTANCE;
-    
-    // Set Y position to player's feet (position minus height)
-    throwPosition.y -= player.height;
     
     return throwPosition;
   }

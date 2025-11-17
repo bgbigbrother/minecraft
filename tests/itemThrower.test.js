@@ -80,10 +80,10 @@ describe('ItemThrower', () => {
       const throwPosition = ItemThrower.calculateThrowPosition(mockPlayer);
 
       // Expected: X = 10 + 0*3 = 10
-      // Y = 5 - 1.75 = 3.25 (subtracts player height)
+      // Y = 5 + 0 - 1.75/2 = 5 - 0.875 = 4.125 (subtracts half player height)
       // Z = 10 + 1*3 = 13
       expect(throwPosition.x).toBeCloseTo(10, 5);
-      expect(throwPosition.y).toBeCloseTo(3.25, 5);
+      expect(throwPosition.y).toBeCloseTo(4.125, 5);
       expect(throwPosition.z).toBeCloseTo(13, 5);
     });
 
@@ -97,10 +97,10 @@ describe('ItemThrower', () => {
       const throwPosition = ItemThrower.calculateThrowPosition(mockPlayer);
 
       // Expected: X = 10 + 1*3 = 13
-      // Y = 5 - 1.75 = 3.25
+      // Y = 5 + 0 - 1.75/2 = 4.125
       // Z = 10 + 0*3 = 10
       expect(throwPosition.x).toBeCloseTo(13, 5);
-      expect(throwPosition.y).toBeCloseTo(3.25, 5);
+      expect(throwPosition.y).toBeCloseTo(4.125, 5);
       expect(throwPosition.z).toBeCloseTo(10, 5);
     });
 
@@ -108,14 +108,14 @@ describe('ItemThrower', () => {
       expect(ItemThrower.THROW_DISTANCE).toBe(3.0);
     });
 
-    it('should subtract player height from Y position', () => {
+    it('should subtract half player height from Y position', () => {
       // Player at ground level
       mockPlayer.position.y = 0;
 
       const throwPosition = ItemThrower.calculateThrowPosition(mockPlayer);
 
-      // Y = 0 - 1.75 = -1.75
-      expect(throwPosition.y).toBeCloseTo(-1.75, 5);
+      // Y = 0 + 0 - 1.75/2 = -0.875
+      expect(throwPosition.y).toBeCloseTo(-0.875, 5);
     });
 
     it('should handle diagonal camera directions', () => {
@@ -130,10 +130,10 @@ describe('ItemThrower', () => {
 
       // Direction is (1/√2, 0, 1/√2), distance is 3
       // Expected X: 10 + 3 * (1/√2) ≈ 10 + 2.121 = 12.121
-      // Expected Y: 5 - 1.75 = 3.25
+      // Expected Y: 5 + 0 - 1.75/2 = 4.125
       // Expected Z: 10 + 3 * (1/√2) ≈ 10 + 2.121 = 12.121
       expect(throwPosition.x).toBeCloseTo(12.121, 2);
-      expect(throwPosition.y).toBeCloseTo(3.25, 5);
+      expect(throwPosition.y).toBeCloseTo(4.125, 5);
       expect(throwPosition.z).toBeCloseTo(12.121, 2);
     });
 
@@ -147,9 +147,9 @@ describe('ItemThrower', () => {
 
       const throwPosition = ItemThrower.calculateThrowPosition(mockPlayer);
 
-      // Y calculation: player.position.y - player.height = 5 - 1.75 = 3.25
-      // Note: Y direction component is not used in the calculation
-      expect(throwPosition.y).toBeCloseTo(3.25, 5);
+      // Y calculation: player.position.y + direction.y - player.height/2
+      // = 5 + (1/√2) - 0.875 ≈ 5 + 0.707 - 0.875 = 4.832
+      expect(throwPosition.y).toBeCloseTo(4.832, 2);
       // Z should be affected by direction: 10 + (1/√2)*3 ≈ 12.121
       expect(throwPosition.z).toBeCloseTo(12.121, 2);
     });
@@ -217,9 +217,9 @@ describe('ItemThrower', () => {
       expect(spawnedItem.blockId).toBe(3);
       
       // Position should be 3 blocks in front of player
-      // X = 10, Y = 5 - 1.75 = 3.25, Z = 13
+      // X = 10, Y = 5 + 0 - 1.75/2 = 4.125, Z = 13
       expect(spawnedItem.position.x).toBeCloseTo(10, 5);
-      expect(spawnedItem.position.y).toBeCloseTo(3.25, 5);
+      expect(spawnedItem.position.y).toBeCloseTo(4.125, 5);
       expect(spawnedItem.position.z).toBeCloseTo(13, 5);
     });
 
