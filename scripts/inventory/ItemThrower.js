@@ -25,11 +25,10 @@ export class ItemThrower {
     
     // Multiply direction by throw distance and add to player position
     throwPosition.x += direction.x * this.THROW_DISTANCE;
-    throwPosition.y -= player.height;
     throwPosition.z += direction.z * this.THROW_DISTANCE;
     
-    // Adjust Y position to player's eye level (1.6 blocks above feet)
-    // throwPosition.y += 1.6;
+    // Set Y position to player's feet (position minus height)
+    throwPosition.y -= player.height;
     
     return throwPosition;
   }
