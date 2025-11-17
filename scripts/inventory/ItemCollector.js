@@ -114,4 +114,47 @@ export class ItemCollector {
       // Continue gameplay - item will remain in world for retry
     }
   }
+
+  /**
+   * Check for and remove dropped items that have exceeded their despawn time
+   * @param {Array} droppedItems - Array of DroppedItem instances
+   * @param {object} world - World instance for scene management
+   */
+  static checkDespawns(droppedItems, world) {
+    if (!droppedItems || !world) {
+      return;
+    }
+
+    // Iterate in reverse order to safely remove items during iteration
+    for (let i = droppedItems.length - 1; i >= 0; i--) {
+      const item = droppedItems[i];
+      
+      // Skip invalid items
+      if (!item) {
+        console.warn(`Skipping invalid dropped item at index ${i}`);
+        continue;
+      }
+      
+      try {
+        // Check if item should despawn
+        if (item.shouldDespawn && item.shouldDespawn()) {
+          // Remove mesh from world (world extends Group, so use world.remove directly)
+          if (item.mesh) {
+            world.remove(item.mesh);
+          }
+          
+          // Clean up Three.js resources
+          if (item.dispose) {
+            item.dispose();
+          }
+          
+          // Remove item from droppedItems array
+          droppedItems.splice(i, 1);
+        }
+      } catch (e) {
+        console.warn(`Error checking despawn for item at index ${i}:`, e.message || e);
+        // Continue checking other items
+      }
+    }
+  }
 }

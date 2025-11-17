@@ -45,6 +45,9 @@ export function animate(player, world, dayNightCycle, toolbarUI, gameOverSystem)
       }
     }
 
+    // Check for and remove expired dropped items (despawn after 10 minutes)
+    ItemCollector.checkDespawns(world.droppedItems, world);
+
     // Check for and collect nearby dropped items
     ItemCollector.checkCollections(player, world.droppedItems, world);
     

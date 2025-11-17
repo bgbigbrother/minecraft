@@ -41,7 +41,54 @@ describe('ControllsPlayerBase', () => {
         [6, [6, 1]], // Slot 6 contains block ID 6
         [7, [7, 1]], // Slot 7 contains block ID 7
         [8, [8, 1]], // Slot 8 contains block ID 8
-      ])
+      ]),
+      selectedSlot: 0,
+      setSelectedSlot: jest.fn(function(index) {
+        // Remove selection from current slot
+        const currentSlot = document.getElementById(`toolbar-${this.selectedSlot}`);
+        if (currentSlot) {
+          currentSlot.classList.remove('selected');
+        }
+        
+        // Update selected slot
+        this.selectedSlot = index;
+        
+        // Add selection to new slot
+        const newSlot = document.getElementById(`toolbar-${index}`);
+        if (newSlot) {
+          newSlot.classList.add('selected');
+        }
+        
+        // Update player's activeBlockId if player reference exists
+        if (this.player) {
+          if (index === 0) {
+            this.player.activeBlockId = 0;
+            if (this.player.tool && this.player.tool.container) {
+              this.player.tool.container.visible = true;
+            }
+          } else {
+            const slotContent = this.slotContents.get(index);
+            if (slotContent) {
+              this.player.activeBlockId = slotContent[0];
+              if (this.player.tool && this.player.tool.container) {
+                this.player.tool.container.visible = false;
+              }
+            } else {
+              this.player.activeBlockId = 0;
+              if (this.player.tool && this.player.tool.container) {
+                this.player.tool.container.visible = true;
+              }
+            }
+          }
+        }
+      }),
+      getSelectedBlockId: jest.fn(function() {
+        if (this.selectedSlot === 0) {
+          return null;
+        }
+        const slotContent = this.slotContents.get(this.selectedSlot);
+        return slotContent ? slotContent[0] : null;
+      })
     };
 
     mockWorld = {
@@ -52,6 +99,9 @@ describe('ControllsPlayerBase', () => {
 
     player = new ControllsPlayerBase();
     player.world = mockWorld;
+    
+    // Connect player reference to toolbarUI
+    mockToolbarUI.player = player;
   });
 
   afterEach(() => {

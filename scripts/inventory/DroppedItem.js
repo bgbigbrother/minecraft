@@ -8,6 +8,7 @@ export class DroppedItem {
   // Constants
   static ROTATION_SPEED = 2; // Radians per second
   static GRAVITY = 9.8; // Blocks per second squared
+  static DESPAWN_TIME = 600; // Seconds until item despawns (10 minutes)
   
   /**
    * @param {number} blockId - The ID of the block type
@@ -40,6 +41,9 @@ export class DroppedItem {
     // Track if item is on ground (optimization)
     this.onGround = false;
     
+    // Store creation timestamp for despawn tracking
+    this.createdAt = Date.now();
+    
     try {
       // Create a small cube mesh (0.1 scale of normal block)
       const geometry = new THREE.BoxGeometry(3, 3, 3);
@@ -60,9 +64,6 @@ export class DroppedItem {
       
       // Position the mesh in the world
       this.mesh.position.copy(this.position);
-      
-      // Store creation time for future features (despawn, etc.)
-      this.createdAt = Date.now();
     } catch (e) {
       console.warn('Error creating DroppedItem mesh:', e.message || e);
       // Create minimal mesh as fallback
@@ -145,6 +146,22 @@ export class DroppedItem {
       console.warn('Error checking collision for DroppedItem:', e.message || e);
       return false;
     }
+  }
+
+  /**
+   * Get the age of the item in seconds
+   * @returns {number} Age in seconds since creation
+   */
+  getAge() {
+    return (Date.now() - this.createdAt) / 1000;
+  }
+
+  /**
+   * Check if the item should despawn
+   * @returns {boolean} True if item has existed longer than DESPAWN_TIME
+   */
+  shouldDespawn() {
+    return this.getAge() >= DroppedItem.DESPAWN_TIME;
   }
 
   /**

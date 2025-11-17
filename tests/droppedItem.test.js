@@ -546,3 +546,283 @@ describe('DroppedItem World Boundary Protection', () => {
     expect(droppedItem.position.y).toBeGreaterThan(0.5);
   });
 });
+
+describe('DroppedItem Despawn Tracking', () => {
+  let droppedItem;
+  let mockBlockDefinition;
+
+  beforeEach(() => {
+    mockBlockDefinition = {
+      material: new THREE.MeshLambertMaterial({ color: 0x00ff00 })
+    };
+
+    const position = new THREE.Vector3(5, 10, 5);
+    droppedItem = new DroppedItem(1, position, mockBlockDefinition);
+  });
+
+  it('should have DESPAWN_TIME constant set to 600 seconds', () => {
+    expect(DroppedItem.DESPAWN_TIME).toBe(600);
+  });
+
+  it('should initialize createdAt timestamp in constructor', () => {
+    expect(droppedItem.createdAt).toBeDefined();
+    expect(typeof droppedItem.createdAt).toBe('number');
+    expect(droppedItem.createdAt).toBeGreaterThan(0);
+  });
+
+  it('should have getAge method that returns age in seconds', () => {
+    expect(typeof droppedItem.getAge).toBe('function');
+    
+    const age = droppedItem.getAge();
+    expect(typeof age).toBe('number');
+    expect(age).toBeGreaterThanOrEqual(0);
+    expect(age).toBeLessThan(1); // Should be less than 1 second old
+  });
+
+  it('should calculate age correctly', () => {
+    // Manually set createdAt to 5 seconds ago
+    droppedItem.createdAt = Date.now() - 5000;
+    
+    const age = droppedItem.getAge();
+    expect(age).toBeGreaterThanOrEqual(4.9);
+    expect(age).toBeLessThanOrEqual(5.1);
+  });
+
+  it('should have shouldDespawn method', () => {
+    expect(typeof droppedItem.shouldDespawn).toBe('function');
+  });
+
+  it('should not despawn when age is less than DESPAWN_TIME', () => {
+    // Item just created
+    expect(droppedItem.shouldDespawn()).toBe(false);
+    
+    // Item created 300 seconds ago (half of despawn time)
+    droppedItem.createdAt = Date.now() - 300000;
+    expect(droppedItem.shouldDespawn()).toBe(false);
+    
+    // Item created 599 seconds ago (just before despawn time)
+    droppedItem.createdAt = Date.now() - 599000;
+    expect(droppedItem.shouldDespawn()).toBe(false);
+  });
+
+  it('should despawn when age equals DESPAWN_TIME', () => {
+    // Item created exactly 600 seconds ago
+    droppedItem.createdAt = Date.now() - 600000;
+    expect(droppedItem.shouldDespawn()).toBe(true);
+  });
+
+  it('should despawn when age exceeds DESPAWN_TIME', () => {
+    // Item created 601 seconds ago
+    droppedItem.createdAt = Date.now() - 601000;
+    expect(droppedItem.shouldDespawn()).toBe(true);
+    
+    // Item created 1000 seconds ago
+    droppedItem.createdAt = Date.now() - 1000000;
+    expect(droppedItem.shouldDespawn()).toBe(true);
+  });
+
+  it('should return correct age over time', () => {
+    const firstAge = droppedItem.getAge();
+    
+    // Wait a bit (simulate time passing)
+    const waitTime = 100; // 100ms
+    const startTime = Date.now();
+    while (Date.now() - startTime < waitTime) {
+      // Busy wait
+    }
+    
+    const secondAge = droppedItem.getAge();
+    expect(secondAge).toBeGreaterThan(firstAge);
+    expect(secondAge - firstAge).toBeGreaterThanOrEqual(0.09); // At least 90ms difference
+  });
+});
+
+describe('ItemCollector checkDespawns', () => {
+  let mockWorld;
+  let droppedItems;
+  let mockBlockDefinition;
+
+  beforeEach(() => {
+    // Import ItemCollector
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    mockBlockDefinition = {
+      material: new THREE.MeshLambertMaterial({ color: 0x00ff00 })
+    };
+
+    // Mock world with scene-like remove method
+    mockWorld = {
+      remove: function(mesh) {
+        // Track removed meshes for verification
+        if (!this.removedMeshes) {
+          this.removedMeshes = [];
+        }
+        this.removedMeshes.push(mesh);
+      },
+      removedMeshes: []
+    };
+
+    droppedItems = [];
+  });
+
+  it('should remove items older than 600 seconds', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Create items with different ages
+    const oldItem = new DroppedItem(1, new THREE.Vector3(5, 10, 5), mockBlockDefinition);
+    oldItem.createdAt = Date.now() - 601000; // 601 seconds ago
+    
+    const newItem = new DroppedItem(2, new THREE.Vector3(6, 10, 6), mockBlockDefinition);
+    newItem.createdAt = Date.now() - 100000; // 100 seconds ago
+    
+    droppedItems.push(oldItem, newItem);
+    
+    // Check despawns
+    ItemCollector.checkDespawns(droppedItems, mockWorld);
+    
+    // Old item should be removed, new item should remain
+    expect(droppedItems.length).toBe(1);
+    expect(droppedItems[0]).toBe(newItem);
+  });
+
+  it('should keep items younger than 600 seconds', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Create items all younger than despawn time
+    const item1 = new DroppedItem(1, new THREE.Vector3(5, 10, 5), mockBlockDefinition);
+    item1.createdAt = Date.now() - 100000; // 100 seconds ago
+    
+    const item2 = new DroppedItem(2, new THREE.Vector3(6, 10, 6), mockBlockDefinition);
+    item2.createdAt = Date.now() - 300000; // 300 seconds ago
+    
+    const item3 = new DroppedItem(3, new THREE.Vector3(7, 10, 7), mockBlockDefinition);
+    item3.createdAt = Date.now() - 599000; // 599 seconds ago (just before despawn)
+    
+    droppedItems.push(item1, item2, item3);
+    
+    // Check despawns
+    ItemCollector.checkDespawns(droppedItems, mockWorld);
+    
+    // All items should remain
+    expect(droppedItems.length).toBe(3);
+  });
+
+  it('should remove mesh from scene when despawning', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    const oldItem = new DroppedItem(1, new THREE.Vector3(5, 10, 5), mockBlockDefinition);
+    oldItem.createdAt = Date.now() - 601000; // 601 seconds ago
+    
+    const itemMesh = oldItem.mesh;
+    droppedItems.push(oldItem);
+    
+    // Check despawns
+    ItemCollector.checkDespawns(droppedItems, mockWorld);
+    
+    // Verify mesh was removed from world
+    expect(mockWorld.removedMeshes).toContain(itemMesh);
+  });
+
+  it('should call dispose on despawned items', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    const oldItem = new DroppedItem(1, new THREE.Vector3(5, 10, 5), mockBlockDefinition);
+    oldItem.createdAt = Date.now() - 601000; // 601 seconds ago
+    
+    droppedItems.push(oldItem);
+    
+    // Check despawns
+    ItemCollector.checkDespawns(droppedItems, mockWorld);
+    
+    // Verify item was disposed (mesh should be null)
+    expect(oldItem.mesh).toBeNull();
+  });
+
+  it('should remove despawned items from tracking array', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    const oldItem1 = new DroppedItem(1, new THREE.Vector3(5, 10, 5), mockBlockDefinition);
+    oldItem1.createdAt = Date.now() - 601000;
+    
+    const oldItem2 = new DroppedItem(2, new THREE.Vector3(6, 10, 6), mockBlockDefinition);
+    oldItem2.createdAt = Date.now() - 700000;
+    
+    const newItem = new DroppedItem(3, new THREE.Vector3(7, 10, 7), mockBlockDefinition);
+    newItem.createdAt = Date.now() - 100000;
+    
+    droppedItems.push(oldItem1, newItem, oldItem2);
+    
+    // Check despawns
+    ItemCollector.checkDespawns(droppedItems, mockWorld);
+    
+    // Only new item should remain
+    expect(droppedItems.length).toBe(1);
+    expect(droppedItems[0]).toBe(newItem);
+  });
+
+  it('should handle empty droppedItems array', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Should not throw with empty array
+    expect(() => {
+      ItemCollector.checkDespawns(droppedItems, mockWorld);
+    }).not.toThrow();
+    
+    expect(droppedItems.length).toBe(0);
+  });
+
+  it('should handle items at exactly 600 seconds', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    const item = new DroppedItem(1, new THREE.Vector3(5, 10, 5), mockBlockDefinition);
+    item.createdAt = Date.now() - 600000; // Exactly 600 seconds ago
+    
+    droppedItems.push(item);
+    
+    // Check despawns
+    ItemCollector.checkDespawns(droppedItems, mockWorld);
+    
+    // Item at exactly 600 seconds should be removed (>= condition)
+    expect(droppedItems.length).toBe(0);
+  });
+
+  it('should handle multiple old items', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Create 5 old items
+    for (let i = 0; i < 5; i++) {
+      const item = new DroppedItem(i, new THREE.Vector3(i, 10, i), mockBlockDefinition);
+      item.createdAt = Date.now() - (601000 + i * 1000); // All older than 600 seconds
+      droppedItems.push(item);
+    }
+    
+    // Check despawns
+    ItemCollector.checkDespawns(droppedItems, mockWorld);
+    
+    // All items should be removed
+    expect(droppedItems.length).toBe(0);
+    expect(mockWorld.removedMeshes.length).toBe(5);
+  });
+
+  it('should not throw when world is null', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    const item = new DroppedItem(1, new THREE.Vector3(5, 10, 5), mockBlockDefinition);
+    item.createdAt = Date.now() - 601000;
+    droppedItems.push(item);
+    
+    // Should not throw with null world
+    expect(() => {
+      ItemCollector.checkDespawns(droppedItems, null);
+    }).not.toThrow();
+  });
+
+  it('should not throw when droppedItems is null', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Should not throw with null droppedItems
+    expect(() => {
+      ItemCollector.checkDespawns(null, mockWorld);
+    }).not.toThrow();
+  });
+});

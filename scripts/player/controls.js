@@ -1,5 +1,6 @@
 import { PlayerBase } from './base';
 import { blocks } from '../textures/blocks.js';
+import { ItemThrower } from '../inventory/ItemThrower.js';
 
 /**
  * Extends player with keyboard and mouse input handling
@@ -141,28 +142,39 @@ export class ControllsPlayerBase extends PlayerBase {
                 // Get the pressed key number (slot number)
                 const slotNumber = Number(event.key);
                 
-                // Remove selection from current toolbar slot
-                const currentSlot = this.getActiveSlot();
-                document.getElementById(`toolbar-${currentSlot}`)?.classList.remove('selected');
-
-                // Get the block ID from the toolbar slot contents
-                if (slotNumber === 0) {
-                    // Slot 0 is always the pickaxe (empty block ID)
-                    this.activeBlockId = blocks.empty.id;
-                    this.tool.container.visible = true;
-                    document.getElementById('toolbar-0')?.classList.add('selected');
+                // Use ToolbarUI to handle slot selection if available
+                if (this.world && this.world.toolbarUI) {
+                    // ToolbarUI.setSelectedSlot handles all selection logic including:
+                    // - Removing selection from current slot
+                    // - Adding selection to new slot
+                    // - Updating player's activeBlockId
+                    // - Showing/hiding tool based on selection
+                    this.world.toolbarUI.setSelectedSlot(slotNumber);
                 } else {
-                    // Get the block ID from the toolbar UI slot contents
-                    const blockIdInSlot = this.getBlockIdFromSlot(slotNumber);
-                    if (blockIdInSlot !== null) {
-                        this.activeBlockId = blockIdInSlot;
-                        this.tool.container.visible = false;
-                        document.getElementById(`toolbar-${slotNumber}`)?.classList.add('selected');
-                    } else {
-                        // Slot is empty, switch to pickaxe
+                    // Fallback to legacy behavior if ToolbarUI not available
+                    // Remove selection from current toolbar slot
+                    const currentSlot = this.getActiveSlot();
+                    document.getElementById(`toolbar-${currentSlot}`)?.classList.remove('selected');
+
+                    // Get the block ID from the toolbar slot contents
+                    if (slotNumber === 0) {
+                        // Slot 0 is always the pickaxe (empty block ID)
                         this.activeBlockId = blocks.empty.id;
                         this.tool.container.visible = true;
                         document.getElementById('toolbar-0')?.classList.add('selected');
+                    } else {
+                        // Get the block ID from the toolbar UI slot contents
+                        const blockIdInSlot = this.getBlockIdFromSlot(slotNumber);
+                        if (blockIdInSlot !== null) {
+                            this.activeBlockId = blockIdInSlot;
+                            this.tool.container.visible = false;
+                            document.getElementById(`toolbar-${slotNumber}`)?.classList.add('selected');
+                        } else {
+                            // Slot is empty, switch to pickaxe
+                            this.activeBlockId = blocks.empty.id;
+                            this.tool.container.visible = true;
+                            document.getElementById('toolbar-0')?.classList.add('selected');
+                        }
                     }
                 }
 
@@ -222,6 +234,20 @@ export class ControllsPlayerBase extends PlayerBase {
             case 'F10':
                 this.debugCamera = true;
                 this.controls.unlock();
+                break;
+            
+            // E: Throw selected item from inventory
+            case 'KeyE':
+                // Only handle when pointer is locked (during gameplay)
+                if (this.controls.isLocked) {
+                    // Prevent default browser behavior for 'E' key
+                    event.preventDefault();
+                    
+                    // Throw the currently selected item
+                    if (this.world && this.world.toolbarUI) {
+                        ItemThrower.throwItem(this, this.world, this.world.toolbarUI);
+                    }
+                }
                 break;
         }
     }

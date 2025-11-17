@@ -34,6 +34,10 @@ export class ToolbarUI {
     
     // Cache of current slot contents [blockId, quantity] indexed by slot number (1-8)
     this.slotContents = new Map();
+    
+    // Currently selected toolbar slot (0 = pickaxe, 1-8 = inventory slots)
+    // Default to 0 (pickaxe) as it's the starting tool
+    this.selectedSlot = 0;
   }
 
   /**
@@ -88,7 +92,6 @@ export class ToolbarUI {
     
     // Track if the currently selected slot changed its contents
     let selectedSlotChanged = false;
-    const currentActiveSlot = this.player ? this.player.activeBlockId : 0;
     
     // Update each toolbar slot (1-8)
     for (let i = 0; i < this.maxSlots; i++) {
@@ -99,7 +102,7 @@ export class ToolbarUI {
         const [blockId, quantity] = displayItems[i];
         
         // Check if this is the currently selected slot and its contents changed
-        if (slotIndex === currentActiveSlot) {
+        if (slotIndex === this.selectedSlot) {
           const previousContent = this.slotContents.get(slotIndex);
           if (previousContent && previousContent[0] !== blockId) {
             selectedSlotChanged = true;
@@ -112,7 +115,7 @@ export class ToolbarUI {
         // No item for this slot, clear it (displays empty slot)
         
         // Check if this is the currently selected slot and it became empty
-        if (slotIndex === currentActiveSlot && this.slotContents.has(slotIndex)) {
+        if (slotIndex === this.selectedSlot && this.slotContents.has(slotIndex)) {
           selectedSlotChanged = true;
         }
         
@@ -122,19 +125,14 @@ export class ToolbarUI {
     }
     
     // If the selected slot's contents changed, update player's activeBlockId
-    if (selectedSlotChanged && this.player && currentActiveSlot > 0) {
-      const newContent = this.slotContents.get(currentActiveSlot);
+    if (selectedSlotChanged && this.player && this.selectedSlot > 0) {
+      const newContent = this.slotContents.get(this.selectedSlot);
       if (newContent) {
         // Update to the new block ID in this slot
         this.player.activeBlockId = newContent[0];
       } else {
         // Slot is now empty, switch to pickaxe
-        this.player.activeBlockId = 0;
-        this.player.tool.container.visible = true;
-        
-        // Update visual selection
-        document.getElementById(`toolbar-${currentActiveSlot}`)?.classList.remove('selected');
-        document.getElementById('toolbar-0')?.classList.add('selected');
+        this.setSelectedSlot(0);
       }
     }
     
@@ -259,5 +257,73 @@ export class ToolbarUI {
       pickaxeSlot.src = 'textures/pickaxe.png';
       pickaxeSlot.style.opacity = '1';
     }
+  }
+
+  /**
+   * Update the selected toolbar slot
+   * Requirements: 10.7
+   * 
+   * @param {number} index - Slot index (0-8, where 0 is pickaxe)
+   */
+  setSelectedSlot(index) {
+    // Validate slot index
+    if (index < 0 || index > 8) {
+      console.warn(`Invalid slot index: ${index}. Must be 0-8.`);
+      return;
+    }
+    
+    // Remove selection from current slot
+    const currentSlotElement = document.getElementById(`toolbar-${this.selectedSlot}`);
+    if (currentSlotElement) {
+      currentSlotElement.classList.remove('selected');
+    }
+    
+    // Update selected slot
+    this.selectedSlot = index;
+    
+    // Add selection to new slot
+    const newSlotElement = document.getElementById(`toolbar-${index}`);
+    if (newSlotElement) {
+      newSlotElement.classList.add('selected');
+    }
+    
+    // Update player's activeBlockId if player reference exists
+    if (this.player) {
+      if (index === 0) {
+        // Pickaxe selected
+        this.player.activeBlockId = 0;
+        this.player.tool.container.visible = true;
+      } else {
+        // Inventory slot selected
+        const blockId = this.getSelectedBlockId();
+        if (blockId !== null) {
+          this.player.activeBlockId = blockId;
+          this.player.tool.container.visible = false;
+        } else {
+          // Empty slot, switch back to pickaxe
+          this.player.activeBlockId = 0;
+          this.player.tool.container.visible = true;
+        }
+      }
+    }
+  }
+
+  /**
+   * Get the block ID of the currently selected toolbar slot
+   * Requirements: 10.7
+   * 
+   * @returns {number|null} Block ID of selected slot, or null if empty/pickaxe
+   */
+  getSelectedBlockId() {
+    // Slot 0 (pickaxe) always returns null
+    if (this.selectedSlot === 0) {
+      return null;
+    }
+    
+    // Get the block ID from the slot contents cache
+    const slotContent = this.slotContents.get(this.selectedSlot);
+    
+    // Return block ID if slot has content, otherwise null
+    return slotContent ? slotContent[0] : null;
   }
 }

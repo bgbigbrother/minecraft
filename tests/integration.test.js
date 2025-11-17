@@ -761,3 +761,701 @@ describe('Toolbar and Block Placement Integration', () => {
     expect(mockPlayer.inventory.getQuantity(10)).toBe(5);
   });
 });
+
+describe('Item Throwing Integration', () => {
+  let world;
+  let mockPlayer;
+  let toolbarUI;
+  let originalLocalStorage;
+
+  // Mock DOM setup for toolbar
+  function setupMockDOM() {
+    const toolbar = document.createElement('div');
+    toolbar.id = 'toolbar';
+    
+    // Create toolbar slots 0-8
+    for (let i = 0; i <= 8; i++) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'toolbar-slot';
+      
+      const img = document.createElement('img');
+      img.id = `toolbar-${i}`;
+      img.className = 'toolbar-icon';
+      if (i === 0) {
+        img.src = 'textures/pickaxe.png';
+        img.classList.add('selected');
+      }
+      
+      wrapper.appendChild(img);
+      toolbar.appendChild(wrapper);
+    }
+    
+    document.body.appendChild(toolbar);
+    return toolbar;
+  }
+
+  function cleanupMockDOM() {
+    const toolbar = document.getElementById('toolbar');
+    if (toolbar) {
+      toolbar.remove();
+    }
+  }
+
+  beforeEach(() => {
+    // Setup DOM
+    setupMockDOM();
+    
+    // Mock localStorage
+    originalLocalStorage = global.localStorage;
+    const storageData = {};
+    global.localStorage = {
+      getItem(key) {
+        return storageData[key] || null;
+      },
+      setItem(key, value) {
+        storageData[key] = value;
+      },
+      removeItem(key) {
+        delete storageData[key];
+      },
+      clear() {
+        Object.keys(storageData).forEach(key => delete storageData[key]);
+      }
+    };
+
+    // Import required classes
+    const THREE = require('three');
+    const { World } = require('../scripts/world/world.js');
+    const { InventoryManager } = require('../scripts/inventory/InventoryManager.js');
+    const { ToolbarUI } = require('../scripts/inventory/ToolbarUI.js');
+
+    // Create world
+    world = new World();
+    
+    // Create mock player with inventory and camera
+    mockPlayer = {
+      position: new THREE.Vector3(10, 10, 10),
+      height: 1.75,
+      inventory: new InventoryManager(),
+      camera: {
+        getWorldDirection: function(target) {
+          // Default direction: looking along positive Z axis
+          target.set(0, 0, 1);
+          return target;
+        }
+      }
+    };
+    
+    // Create toolbar UI
+    toolbarUI = new ToolbarUI(mockPlayer.inventory);
+  });
+
+  afterEach(() => {
+    // Clean up
+    if (world && world.droppedItems) {
+      world.droppedItems.forEach(item => {
+        if (item.dispose) item.dispose();
+      });
+      world.droppedItems = [];
+    }
+    
+    cleanupMockDOM();
+    global.localStorage = originalLocalStorage;
+  });
+
+
+
+  test('should throw item in player facing direction', () => {
+    const THREE = require('three');
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    
+    // Add stone to inventory
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 5);
+    toolbarUI.render();
+    toolbarUI.setSelectedSlot(1);
+    
+    // Set player to look along +X axis
+    mockPlayer.camera.getWorldDirection = function(target) {
+      target.set(1, 0, 0);
+      return target;
+    };
+    
+    // Throw item
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    const thrownItem = world.droppedItems[0];
+    
+    // Item should be 3 blocks in +X direction from player
+    // Player at (10, 10, 10), item should be around (13, 8.25, 10)
+    expect(thrownItem.position.x).toBeCloseTo(13, 1);
+    expect(thrownItem.position.z).toBeCloseTo(10, 1);
+  });
+
+  test('should decrease inventory quantity after throwing', () => {
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    
+    // Add stone to inventory
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 5);
+    toolbarUI.render();
+    toolbarUI.setSelectedSlot(1);
+    
+    // Verify initial quantity
+    expect(mockPlayer.inventory.getQuantity(blockId)).toBe(5);
+    
+    // Throw item
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Verify quantity decreased
+    expect(mockPlayer.inventory.getQuantity(blockId)).toBe(4);
+  });
+
+  test('should update toolbar after throwing', () => {
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    
+    // Add stone to inventory
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 3);
+    toolbarUI.render();
+    toolbarUI.setSelectedSlot(1);
+    
+    // Verify initial toolbar display
+    let quantityOverlay = document.querySelector('#quantity-1');
+    expect(quantityOverlay.textContent).toBe('3');
+    
+    // Throw item
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Verify toolbar was updated
+    quantityOverlay = document.querySelector('#quantity-1');
+    expect(quantityOverlay.textContent).toBe('2');
+  });
+
+  test('should not throw when quantity is 0', () => {
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    
+    // Add and then remove all items
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 1);
+    mockPlayer.inventory.removeItem(blockId, 1);
+    toolbarUI.render();
+    toolbarUI.setSelectedSlot(1);
+    
+    // Verify inventory is empty
+    expect(mockPlayer.inventory.getQuantity(blockId)).toBe(0);
+    
+    // Attempt to throw
+    const result = ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Should fail
+    expect(result).toBe(false);
+    expect(world.droppedItems.length).toBe(0);
+  });
+
+  test('should not throw pickaxe from slot 0', () => {
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    
+    // Select pickaxe slot
+    toolbarUI.setSelectedSlot(0);
+    
+    // Attempt to throw
+    const result = ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Should fail (pickaxe cannot be thrown)
+    expect(result).toBe(false);
+    expect(world.droppedItems.length).toBe(0);
+  });
+
+  test('should remove item from toolbar when last item is thrown', () => {
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    
+    // Add only 1 stone
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 1);
+    toolbarUI.render();
+    toolbarUI.setSelectedSlot(1);
+    
+    // Verify item is displayed
+    const slot1 = document.getElementById('toolbar-1');
+    expect(slot1.src).toContain('stone.png');
+    expect(slot1.style.opacity).toBe('1');
+    
+    // Throw the last item
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Toolbar should now be empty
+    expect(slot1.src).toContain('empty_slot.png');
+    expect(slot1.style.opacity).toBe('0.5');
+    
+    // Quantity overlay should be removed
+    const quantityOverlay = document.querySelector('#quantity-1');
+    expect(quantityOverlay).toBeFalsy();
+  });
+
+  test('should save inventory to localStorage after throwing', () => {
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    
+    // Add stone to inventory
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 5);
+    mockPlayer.inventory.save();
+    toolbarUI.render();
+    toolbarUI.setSelectedSlot(1);
+    
+    // Verify initial localStorage
+    let savedData = JSON.parse(localStorage.getItem('minecraft_inventory'));
+    expect(savedData.items[blockId]).toBe(5);
+    
+    // Throw item
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Verify localStorage was updated
+    savedData = JSON.parse(localStorage.getItem('minecraft_inventory'));
+    expect(savedData.items[blockId]).toBe(4);
+  });
+
+  test('should throw multiple items sequentially', () => {
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    
+    // Add stone to inventory
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 5);
+    toolbarUI.render();
+    toolbarUI.setSelectedSlot(1);
+    
+    // Throw 3 items
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Verify 3 items were spawned
+    expect(world.droppedItems.length).toBe(3);
+    
+    // Verify inventory decreased by 3
+    expect(mockPlayer.inventory.getQuantity(blockId)).toBe(2);
+    
+    // Verify toolbar shows updated quantity
+    const quantityOverlay = document.querySelector('#quantity-1');
+    expect(quantityOverlay.textContent).toBe('2');
+  });
+
+  test('should throw different block types', () => {
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    
+    // Add multiple block types
+    mockPlayer.inventory.addItem(blocks.stone.id, 3);
+    mockPlayer.inventory.addItem(blocks.grass.id, 2);
+    toolbarUI.render();
+    
+    // Throw stone
+    toolbarUI.setSelectedSlot(1);
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Throw grass
+    toolbarUI.setSelectedSlot(2);
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Verify both items were spawned
+    expect(world.droppedItems.length).toBe(2);
+    expect(world.droppedItems[0].blockId).toBe(blocks.stone.id);
+    expect(world.droppedItems[1].blockId).toBe(blocks.grass.id);
+  });
+
+  test('should allow collecting thrown items', () => {
+    const THREE = require('three');
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Add stone to inventory
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 5);
+    toolbarUI.render();
+    toolbarUI.setSelectedSlot(1);
+    
+    // Throw item
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Verify item was thrown
+    expect(world.droppedItems.length).toBe(1);
+    expect(mockPlayer.inventory.getQuantity(blockId)).toBe(4);
+    
+    // Move thrown item close to player (simulate it landing nearby)
+    world.droppedItems[0].position.set(10.5, 10, 10);
+    
+    // Collect the thrown item
+    ItemCollector.checkCollections(mockPlayer, world.droppedItems, world);
+    
+    // Verify item was collected back
+    expect(world.droppedItems.length).toBe(0);
+    expect(mockPlayer.inventory.getQuantity(blockId)).toBe(5);
+  });
+
+  test('should handle full throw and collect cycle', () => {
+    const THREE = require('three');
+    const { ItemThrower } = require('../scripts/inventory/ItemThrower.js');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Start with 3 stone blocks
+    const blockId = blocks.stone.id;
+    mockPlayer.inventory.addItem(blockId, 3);
+    toolbarUI.render();
+    toolbarUI.setSelectedSlot(1);
+    
+    // Throw all 3 items
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    ItemThrower.throwItem(mockPlayer, world, toolbarUI);
+    
+    // Verify all thrown
+    expect(world.droppedItems.length).toBe(3);
+    expect(mockPlayer.inventory.getQuantity(blockId)).toBe(0);
+    
+    // Move all items close to player
+    world.droppedItems.forEach(item => {
+      item.position.set(10.5, 10, 10);
+    });
+    
+    // Collect all items
+    ItemCollector.checkCollections(mockPlayer, world.droppedItems, world);
+    
+    // Verify all collected back
+    expect(world.droppedItems.length).toBe(0);
+    expect(mockPlayer.inventory.getQuantity(blockId)).toBe(3);
+  });
+});
+
+describe('Item Despawn Integration', () => {
+  let world;
+  let mockPlayer;
+  let originalLocalStorage;
+
+  beforeEach(() => {
+    // Mock localStorage
+    originalLocalStorage = global.localStorage;
+    const storageData = {};
+    global.localStorage = {
+      getItem(key) {
+        return storageData[key] || null;
+      },
+      setItem(key, value) {
+        storageData[key] = value;
+      },
+      removeItem(key) {
+        delete storageData[key];
+      },
+      clear() {
+        Object.keys(storageData).forEach(key => delete storageData[key]);
+      }
+    };
+
+    // Import required classes
+    const THREE = require('three');
+    const { World } = require('../scripts/world/world.js');
+    const { InventoryManager } = require('../scripts/inventory/InventoryManager.js');
+
+    // Create world
+    world = new World();
+    
+    // Create mock player with inventory
+    mockPlayer = {
+      position: new THREE.Vector3(10, 10, 10),
+      inventory: new InventoryManager()
+    };
+  });
+
+  afterEach(() => {
+    // Clean up
+    if (world && world.droppedItems) {
+      world.droppedItems.forEach(item => {
+        if (item.dispose) item.dispose();
+      });
+      world.droppedItems = [];
+    }
+    
+    global.localStorage = originalLocalStorage;
+  });
+
+  test('should despawn items after 10 minutes', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    const { DroppedItem } = require('../scripts/inventory/DroppedItem.js');
+    
+    // Store original DESPAWN_TIME
+    const originalDespawnTime = DroppedItem.DESPAWN_TIME;
+    
+    // Temporarily set DESPAWN_TIME to 1 second for faster testing
+    DroppedItem.DESPAWN_TIME = 1;
+    
+    try {
+      // Spawn an item
+      const blockId = blocks.stone.id;
+      world.spawnDroppedItem(blockId, new THREE.Vector3(10, 10, 10));
+      
+      // Verify item was spawned
+      expect(world.droppedItems.length).toBe(1);
+      
+      // Manually set createdAt to 1.1 seconds ago
+      world.droppedItems[0].createdAt = Date.now() - 1100;
+      
+      // Check despawns
+      ItemCollector.checkDespawns(world.droppedItems, world);
+      
+      // Item should be despawned
+      expect(world.droppedItems.length).toBe(0);
+    } finally {
+      // Restore original DESPAWN_TIME
+      DroppedItem.DESPAWN_TIME = originalDespawnTime;
+    }
+  });
+
+  test('should remove despawned items from scene', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    const { DroppedItem } = require('../scripts/inventory/DroppedItem.js');
+    
+    // Store original DESPAWN_TIME
+    const originalDespawnTime = DroppedItem.DESPAWN_TIME;
+    DroppedItem.DESPAWN_TIME = 1;
+    
+    try {
+      // Spawn an item
+      const blockId = blocks.stone.id;
+      world.spawnDroppedItem(blockId, new THREE.Vector3(10, 10, 10));
+      
+      const item = world.droppedItems[0];
+      const itemMesh = item.mesh;
+      
+      // Verify mesh exists
+      expect(itemMesh).toBeDefined();
+      
+      // Track if mesh was removed (world.remove is called by ItemCollector)
+      const removedMeshes = [];
+      const originalRemove = world.remove.bind(world);
+      world.remove = function(mesh) {
+        removedMeshes.push(mesh);
+        return originalRemove(mesh);
+      };
+      
+      // Set item as old
+      item.createdAt = Date.now() - 1100;
+      
+      // Check despawns
+      ItemCollector.checkDespawns(world.droppedItems, world);
+      
+      // Mesh should have been removed from scene
+      expect(removedMeshes).toContain(itemMesh);
+    } finally {
+      DroppedItem.DESPAWN_TIME = originalDespawnTime;
+    }
+  });
+
+  test('should remove despawned items from tracking array', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    const { DroppedItem } = require('../scripts/inventory/DroppedItem.js');
+    
+    const originalDespawnTime = DroppedItem.DESPAWN_TIME;
+    DroppedItem.DESPAWN_TIME = 1;
+    
+    try {
+      // Spawn multiple items
+      world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(10, 10, 10));
+      world.spawnDroppedItem(blocks.grass.id, new THREE.Vector3(11, 10, 10));
+      world.spawnDroppedItem(blocks.dirt.id, new THREE.Vector3(12, 10, 10));
+      
+      expect(world.droppedItems.length).toBe(3);
+      
+      // Make first two items old
+      world.droppedItems[0].createdAt = Date.now() - 1100;
+      world.droppedItems[1].createdAt = Date.now() - 1100;
+      // Third item is new
+      
+      // Check despawns
+      ItemCollector.checkDespawns(world.droppedItems, world);
+      
+      // Only the new item should remain
+      expect(world.droppedItems.length).toBe(1);
+      expect(world.droppedItems[0].blockId).toBe(blocks.dirt.id);
+    } finally {
+      DroppedItem.DESPAWN_TIME = originalDespawnTime;
+    }
+  });
+
+  test('should not despawn items collected before despawn time', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    const { DroppedItem } = require('../scripts/inventory/DroppedItem.js');
+    
+    const originalDespawnTime = DroppedItem.DESPAWN_TIME;
+    DroppedItem.DESPAWN_TIME = 1;
+    
+    try {
+      // Spawn an item
+      const blockId = blocks.stone.id;
+      world.spawnDroppedItem(blockId, new THREE.Vector3(10.5, 10, 10));
+      
+      expect(world.droppedItems.length).toBe(1);
+      expect(mockPlayer.inventory.getQuantity(blockId)).toBe(0);
+      
+      // Collect the item before it despawns
+      ItemCollector.checkCollections(mockPlayer, world.droppedItems, world);
+      
+      // Item should be collected
+      expect(world.droppedItems.length).toBe(0);
+      expect(mockPlayer.inventory.getQuantity(blockId)).toBe(1);
+      
+      // Now check despawns (should do nothing since item is already collected)
+      ItemCollector.checkDespawns(world.droppedItems, world);
+      
+      // Inventory should still have the item
+      expect(mockPlayer.inventory.getQuantity(blockId)).toBe(1);
+    } finally {
+      DroppedItem.DESPAWN_TIME = originalDespawnTime;
+    }
+  });
+
+  test('should keep items younger than despawn time', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    const { DroppedItem } = require('../scripts/inventory/DroppedItem.js');
+    
+    const originalDespawnTime = DroppedItem.DESPAWN_TIME;
+    DroppedItem.DESPAWN_TIME = 10; // 10 seconds
+    
+    try {
+      // Spawn items with different ages
+      world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(10, 10, 10));
+      world.spawnDroppedItem(blocks.grass.id, new THREE.Vector3(11, 10, 10));
+      world.spawnDroppedItem(blocks.dirt.id, new THREE.Vector3(12, 10, 10));
+      
+      // Set ages: 5s, 8s, 11s
+      world.droppedItems[0].createdAt = Date.now() - 5000;  // 5s old - keep
+      world.droppedItems[1].createdAt = Date.now() - 8000;  // 8s old - keep
+      world.droppedItems[2].createdAt = Date.now() - 11000; // 11s old - despawn
+      
+      // Check despawns
+      ItemCollector.checkDespawns(world.droppedItems, world);
+      
+      // First two should remain, third should be despawned
+      expect(world.droppedItems.length).toBe(2);
+      expect(world.droppedItems[0].blockId).toBe(blocks.stone.id);
+      expect(world.droppedItems[1].blockId).toBe(blocks.grass.id);
+    } finally {
+      DroppedItem.DESPAWN_TIME = originalDespawnTime;
+    }
+  });
+
+  test('should properly dispose despawned item resources', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    const { DroppedItem } = require('../scripts/inventory/DroppedItem.js');
+    
+    const originalDespawnTime = DroppedItem.DESPAWN_TIME;
+    DroppedItem.DESPAWN_TIME = 1;
+    
+    try {
+      // Spawn an item
+      world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(10, 10, 10));
+      
+      const item = world.droppedItems[0];
+      expect(item.mesh).toBeDefined();
+      
+      // Make item old
+      item.createdAt = Date.now() - 1100;
+      
+      // Check despawns
+      ItemCollector.checkDespawns(world.droppedItems, world);
+      
+      // Mesh should be disposed (set to null)
+      expect(item.mesh).toBeNull();
+    } finally {
+      DroppedItem.DESPAWN_TIME = originalDespawnTime;
+    }
+  });
+
+  test('should handle despawn check with empty array', () => {
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    
+    // Should not throw with empty array
+    expect(() => {
+      ItemCollector.checkDespawns(world.droppedItems, world);
+    }).not.toThrow();
+    
+    expect(world.droppedItems.length).toBe(0);
+  });
+
+  test('should despawn all items when all are old', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    const { DroppedItem } = require('../scripts/inventory/DroppedItem.js');
+    
+    const originalDespawnTime = DroppedItem.DESPAWN_TIME;
+    DroppedItem.DESPAWN_TIME = 1;
+    
+    try {
+      // Spawn 5 items
+      for (let i = 0; i < 5; i++) {
+        world.spawnDroppedItem(blocks.stone.id, new THREE.Vector3(10 + i, 10, 10));
+      }
+      
+      expect(world.droppedItems.length).toBe(5);
+      
+      // Make all items old
+      world.droppedItems.forEach(item => {
+        item.createdAt = Date.now() - 1100;
+      });
+      
+      // Check despawns
+      ItemCollector.checkDespawns(world.droppedItems, world);
+      
+      // All items should be despawned
+      expect(world.droppedItems.length).toBe(0);
+    } finally {
+      DroppedItem.DESPAWN_TIME = originalDespawnTime;
+    }
+  });
+
+  test('should handle mixed old and new items correctly', () => {
+    const THREE = require('three');
+    const { ItemCollector } = require('../scripts/inventory/ItemCollector.js');
+    const { DroppedItem } = require('../scripts/inventory/DroppedItem.js');
+    
+    const originalDespawnTime = DroppedItem.DESPAWN_TIME;
+    DroppedItem.DESPAWN_TIME = 2;
+    
+    try {
+      // Spawn items in alternating pattern
+      for (let i = 0; i < 6; i++) {
+        world.spawnDroppedItem(i + 1, new THREE.Vector3(10 + i, 10, 10));
+      }
+      
+      // Make items at even indices old, odd indices new
+      world.droppedItems.forEach((item, index) => {
+        if (index % 2 === 0) {
+          item.createdAt = Date.now() - 2100; // Old
+        } else {
+          item.createdAt = Date.now() - 500;  // New
+        }
+      });
+      
+      // Check despawns
+      ItemCollector.checkDespawns(world.droppedItems, world);
+      
+      // Only odd-indexed items (new ones) should remain
+      expect(world.droppedItems.length).toBe(3);
+      expect(world.droppedItems[0].blockId).toBe(2); // Was at index 1
+      expect(world.droppedItems[1].blockId).toBe(4); // Was at index 3
+      expect(world.droppedItems[2].blockId).toBe(6); // Was at index 5
+    } finally {
+      DroppedItem.DESPAWN_TIME = originalDespawnTime;
+    }
+  });
+
+  test('should verify DESPAWN_TIME is 600 seconds by default', () => {
+    const { DroppedItem } = require('../scripts/inventory/DroppedItem.js');
+    
+    // Verify the constant is set correctly
+    expect(DroppedItem.DESPAWN_TIME).toBe(600);
+  });
+});
