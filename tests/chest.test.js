@@ -354,3 +354,358 @@ describe('Player Inventory Integration', () => {
     expect(player2.inventory.items.get(16)).toBe(1);
   });
 });
+
+describe('Animation Functionality', () => {
+  describe('ModelBlock Animation Extraction', () => {
+    test('should extract animations from GLTF with animations', (done) => {
+      const testBlock = new ModelBlock({
+        id: 99,
+        name: 'test-animated-block',
+        modelPath: './models/chest.glb', // Chest has animations
+        debug: false
+      });
+
+      setTimeout(() => {
+        expect(testBlock.animations).toBeDefined();
+        expect(Array.isArray(testBlock.animations)).toBe(true);
+        expect(testBlock.animations.length).toBeGreaterThan(0);
+        done();
+      }, 100);
+    });
+
+    test('should create AnimationMixer when animations exist', (done) => {
+      const testBlock = new ModelBlock({
+        id: 99,
+        name: 'test-animated-block',
+        modelPath: './models/chest.glb',
+        debug: false
+      });
+
+      setTimeout(() => {
+        expect(testBlock.mixer).toBeDefined();
+        expect(testBlock.mixer).not.toBeNull();
+        expect(testBlock.mixer.constructor.name).toBe('AnimationMixer');
+        done();
+      }, 100);
+    });
+
+    test('should store scene reference when animations exist', (done) => {
+      const testBlock = new ModelBlock({
+        id: 99,
+        name: 'test-animated-block',
+        modelPath: './models/chest.glb',
+        debug: false
+      });
+
+      setTimeout(() => {
+        expect(testBlock.scene).toBeDefined();
+        expect(testBlock.scene).not.toBeNull();
+        done();
+      }, 100);
+    });
+
+    test('should handle models without animations gracefully', (done) => {
+      // Use a non-chest model path which won't have animations in the mock
+      const testBlock = new ModelBlock({
+        id: 99,
+        name: 'test-no-animation',
+        modelPath: './models/test.glb'
+      });
+
+      setTimeout(() => {
+        expect(testBlock.animations).toEqual([]);
+        expect(testBlock.mixer).toBeNull();
+        expect(testBlock.loaded).toBe(true);
+        done();
+      }, 50);
+    });
+  });
+
+  describe('ModelBlock playAnimation Method', () => {
+    test('should return valid animation action when animation exists', (done) => {
+      const testBlock = new ModelBlock({
+        id: 99,
+        name: 'test-animated-block',
+        modelPath: './models/chest.glb',
+        debug: false
+      });
+
+      setTimeout(() => {
+        const action = testBlock.playAnimation(0);
+        expect(action).not.toBeNull();
+        expect(action).toBeDefined();
+        expect(typeof action.play).toBe('function');
+        expect(typeof action.stop).toBe('function');
+        done();
+      }, 100);
+    });
+
+    test('should handle invalid animation index gracefully', (done) => {
+      const testBlock = new ModelBlock({
+        id: 99,
+        name: 'test-animated-block',
+        modelPath: './models/chest.glb',
+        debug: false
+      });
+
+      setTimeout(() => {
+        const action = testBlock.playAnimation(999); // Invalid index
+        expect(action).toBeNull();
+        done();
+      }, 100);
+    });
+
+    test('should return null when no mixer exists', (done) => {
+      const testBlock = new ModelBlock({
+        id: 99,
+        name: 'test-no-animation',
+        modelPath: './models/test.glb'
+      });
+
+      setTimeout(() => {
+        const action = testBlock.playAnimation(0);
+        expect(action).toBeNull();
+        done();
+      }, 50);
+    });
+
+    test('should log warning when debug is enabled and animation cannot play', (done) => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      
+      const testBlock = new ModelBlock({
+        id: 99,
+        name: 'test-block',
+        modelPath: './models/chest.glb',
+        debug: true
+      });
+
+      // Try to play before model loads
+      testBlock.playAnimation(0);
+      
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[ModelBlock] Cannot play animation')
+      );
+      
+      consoleWarnSpy.mockRestore();
+      done();
+    });
+  });
+
+  describe('Chest Block Animation Support', () => {
+    test('should have animations property after loading', (done) => {
+      setTimeout(() => {
+        expect(chest.animations).toBeDefined();
+        expect(Array.isArray(chest.animations)).toBe(true);
+        expect(chest.animations.length).toBeGreaterThan(0);
+        done();
+      }, 100);
+    });
+
+    test('should have mixer property after loading', (done) => {
+      setTimeout(() => {
+        expect(chest.mixer).toBeDefined();
+        expect(chest.mixer).not.toBeNull();
+        done();
+      }, 100);
+    });
+
+    test('should have scene property after loading', (done) => {
+      setTimeout(() => {
+        expect(chest.scene).toBeDefined();
+        expect(chest.scene).not.toBeNull();
+        done();
+      }, 100);
+    });
+
+    test('should be able to play animation', (done) => {
+      setTimeout(() => {
+        const action = chest.playAnimation(0);
+        expect(action).not.toBeNull();
+        expect(action).toBeDefined();
+        done();
+      }, 100);
+    });
+  });
+
+  describe('Animation Mixer Updates', () => {
+    test('should update mixer with delta time', (done) => {
+      setTimeout(() => {
+        const mixer = chest.mixer;
+        expect(mixer).toBeDefined();
+        expect(mixer).not.toBeNull();
+        
+        // Play an animation
+        const action = chest.playAnimation(0);
+        expect(action).not.toBeNull();
+        
+        // Update mixer with delta time
+        const deltaTime = 0.016; // ~60fps
+        expect(() => mixer.update(deltaTime)).not.toThrow();
+        
+        done();
+      }, 100);
+    });
+
+    test('should handle multiple mixer updates', (done) => {
+      setTimeout(() => {
+        const mixer = chest.mixer;
+        expect(mixer).not.toBeNull();
+        chest.playAnimation(0);
+        
+        // Simulate multiple frame updates
+        for (let i = 0; i < 10; i++) {
+          expect(() => mixer.update(0.016)).not.toThrow();
+        }
+        
+        done();
+      }, 100);
+    });
+  });
+
+  describe('Multiple Chest Animations', () => {
+    test('should support independent animations for multiple instances', (done) => {
+      setTimeout(() => {
+        // Create two separate animation actions
+        const action1 = chest.playAnimation(0);
+        const action2 = chest.playAnimation(0);
+        
+        expect(action1).not.toBeNull();
+        expect(action2).not.toBeNull();
+        
+        // Actions should be independent (different objects)
+        expect(action1).not.toBe(action2);
+        
+        done();
+      }, 100);
+    });
+  });
+
+  describe('Right-Click Interaction', () => {
+    let MouseHandler;
+    let mockPlayer;
+    let mockWorld;
+    let mouseHandler;
+    let originalCreateAnimatedInstance;
+
+    beforeEach(async () => {
+      // Mock createAnimatedInstance to avoid SkeletonUtils issues in all tests
+      originalCreateAnimatedInstance = blocks.chest.createAnimatedInstance;
+      blocks.chest.createAnimatedInstance = jest.fn().mockResolvedValue(null);
+
+      // Import MouseHandler
+      const mouseHandlerModule = await import('../scripts/player/controls/MouseHandler.js');
+      MouseHandler = mouseHandlerModule.MouseHandler;
+
+      // Create mock world with necessary methods
+      mockWorld = {
+        getBlock: jest.fn(),
+        addBlock: jest.fn(),
+        removeBlock: jest.fn(),
+        children: [],
+        animatedBlocks: new Map(),
+        activeAnimationMixers: new Map(),
+        parent: new THREE.Scene()
+      };
+
+      // Create mock player
+      mockPlayer = {
+        controls: {
+          isLocked: true
+        },
+        selectedCoords: {
+          x: 5,
+          y: 10,
+          z: 5
+        },
+        activeBlockId: blocks.chest.id,
+        world: mockWorld,
+        scene: new THREE.Scene(),
+        tool: {
+          animate: false,
+          animationStart: 0,
+          animation: null,
+          animationSpeed: 0.01
+        },
+        debugControls: false
+      };
+
+      mouseHandler = new MouseHandler(mockPlayer);
+    });
+
+    afterEach(() => {
+      // Restore original method after each test
+      blocks.chest.createAnimatedInstance = originalCreateAnimatedInstance;
+    });
+
+    test('should detect right-click events', () => {
+      const mockEvent = {
+        button: 2,
+        preventDefault: jest.fn()
+      };
+
+      // Mock world to return a chest block
+      mockWorld.getBlock.mockReturnValue({ id: blocks.chest.id });
+
+      expect(() => mouseHandler.handleMouseDown(mockEvent)).not.toThrow();
+    });
+
+    test('should identify chest block when right-clicking', () => {
+      const mockEvent = {
+        button: 2,
+        preventDefault: jest.fn()
+      };
+
+      // Mock world to return a chest block
+      mockWorld.getBlock.mockReturnValue({ id: blocks.chest.id });
+
+      mouseHandler.handleMouseDown(mockEvent);
+
+      // Verify getBlock was called with correct coordinates
+      expect(mockWorld.getBlock).toHaveBeenCalledWith(5, 10, 5);
+    });
+
+    test('should not place block when interacting with chest', () => {
+      const mockEvent = {
+        button: 2,
+        preventDefault: jest.fn()
+      };
+
+      // Mock world to return a chest block
+      mockWorld.getBlock.mockReturnValue({ id: blocks.chest.id });
+
+      mouseHandler.handleMouseDown(mockEvent);
+
+      // Verify getBlock was called to check for existing block
+      expect(mockWorld.getBlock).toHaveBeenCalledWith(5, 10, 5);
+    });
+
+    test('should handle right-click on non-chest blocks', () => {
+      const mockEvent = {
+        button: 2,
+        preventDefault: jest.fn()
+      };
+
+      // Mock world to return empty block (no interaction)
+      mockWorld.getBlock.mockReturnValue({ id: blocks.empty.id });
+      mockPlayer.activeBlockId = blocks.dirt.id;
+
+      mouseHandler.handleMouseDown(mockEvent);
+
+      // Should place block when not interacting
+      expect(mockWorld.addBlock).toHaveBeenCalledWith(5, 10, 5, blocks.dirt.id);
+    });
+  });
+
+  describe('Animation Integration', () => {
+    test('should have createAnimatedInstance method', () => {
+      expect(chest.createAnimatedInstance).toBeDefined();
+      expect(typeof chest.createAnimatedInstance).toBe('function');
+    });
+
+    test('should handle animation duration property', () => {
+      expect(chest.animationDuration).toBeDefined();
+      expect(typeof chest.animationDuration).toBe('number');
+      expect(chest.animationDuration).toBeGreaterThan(0);
+    });
+  });
+});

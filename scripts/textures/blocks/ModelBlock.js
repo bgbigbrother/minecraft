@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 export class ModelBlock {
+  static debug = false; // Global debug flag that can be toggled from UI
+  
   constructor(config) {
     this.id = config.id;
     this.name = config.name;
@@ -9,10 +11,14 @@ export class ModelBlock {
     this.spawnable = config.spawnable ?? false;
     this.debug = config.debug ?? false;
     this.isModel = true;
+    this.animationDuration = config.animationDuration ?? 3000; // Default 3 seconds in milliseconds
     
     this._geometry = null;
     this._material = null;
     this._loaded = false;
+    this._animations = [];
+    this._mixer = null;
+    this._scene = null;
     
     this._loadModel();
   }
@@ -20,7 +26,7 @@ export class ModelBlock {
   _loadModel() {
     const loader = new GLTFLoader();
     
-    if (this.debug) {
+    if (this.debug || ModelBlock.debug) {
       console.log(`[ModelBlock] Loading model: ${this.modelPath}`);
     }
     
@@ -33,7 +39,7 @@ export class ModelBlock {
   }
   
   _onLoadSuccess(gltf) {
-    if (this.debug) {
+    if (this.debug || ModelBlock.debug) {
       console.log(`[ModelBlock] Model loaded successfully: ${this.name}`);
       console.log('[ModelBlock] Scene structure:', gltf.scene);
     }
@@ -74,9 +80,21 @@ export class ModelBlock {
     this._geometry.translate(-center.x, -center.y, -center.z);
     
     this._material = mesh.material;
+    this._scene = gltf.scene;
     this._loaded = true;
     
-    if (this.debug) {
+    // Extract animations if present
+    if (gltf.animations && gltf.animations.length > 0) {
+      this._animations = gltf.animations;
+      this._mixer = new THREE.AnimationMixer(gltf.scene);
+      
+      if (this.debug || ModelBlock.debug) {
+        console.log(`[ModelBlock] Found ${gltf.animations.length} animations:`, 
+          gltf.animations.map(a => a.name));
+      }
+    }
+    
+    if (this.debug || ModelBlock.debug) {
       console.log('[ModelBlock] Geometry details:', {
         vertices: this._geometry.attributes.position.count,
         boundingBox: this._geometry.boundingBox,
@@ -106,5 +124,106 @@ export class ModelBlock {
   
   get loaded() {
     return this._loaded;
+  }
+  
+  get animations() {
+    return this._animations;
+  }
+  
+  get mixer() {
+    return this._mixer;
+  }
+  
+  get scene() {
+    return this._scene;
+  }
+  
+  playAnimation(index = 0) {
+    if (!this._mixer || !this._animations[index]) {
+      if (this.debug || ModelBlock.debug) {
+        console.warn(`[ModelBlock] Cannot play animation ${index} for ${this.name}`);
+      }
+      return null;
+    }
+    
+    const clip = this._animations[index];
+    const action = this._mixer.clipAction(clip);
+    action.reset();
+    action.play();
+    
+    if (this.debug || ModelBlock.debug) {
+      console.log(`[ModelBlock] Playing animation: ${clip.name}`);
+    }
+    
+    return action;
+  }
+  
+  /**
+   * Creates an animated instance of this model for placement in the world
+   * This clones the scene with proper skeleton bindings for SkinnedMesh
+   * @param {THREE.Vector3} position - World position for the instance
+   * @param {number} animationIndex - Which animation to play (default 0)
+   * @returns {Object} Object with scene, mixer, and action properties
+   */
+  createAnimatedInstance(position, animationIndex = 0) {
+    if (!this._scene) {
+      console.error(`[ModelBlock] Cannot create animated instance: scene not loaded for ${this.name}`);
+      return null;
+    }
+    
+    // Import SkeletonUtils dynamically for proper SkinnedMesh cloning
+    return import('three/addons/utils/SkeletonUtils.js').then(SkeletonUtils => {
+      // Clone the scene with proper skeleton bindings
+      const sceneClone = SkeletonUtils.clone(this._scene);
+      
+      // Configure materials and meshes
+      sceneClone.traverse((child) => {
+        if (child.isMesh || child.isSkinnedMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          child.visible = true;
+          child.frustumCulled = false;
+          
+          if (child.material) {
+            child.material = child.material.clone();
+            child.material.side = THREE.DoubleSide;
+            child.material.needsUpdate = true;
+          }
+        }
+      });
+      
+      // Apply scaling to match block size (1 unit)
+      // This scale was determined through testing
+      const targetScale = 0.005;
+      sceneClone.scale.set(targetScale, targetScale, targetScale);
+      
+      // Set position
+      sceneClone.position.copy(position);
+      sceneClone.visible = true;
+      
+      // Create mixer for this instance
+      const mixer = new THREE.AnimationMixer(sceneClone);
+      
+      // Play animation if available
+      let action = null;
+      if (this._animations && this._animations[animationIndex]) {
+        const clip = this._animations[animationIndex];
+        action = mixer.clipAction(clip);
+        action.reset();
+        action.setLoop(THREE.LoopOnce);
+        action.clampWhenFinished = true;
+        action.play();
+        
+        if (this.debug || ModelBlock.debug) {
+          console.log(`[ModelBlock] Created animated instance with animation: ${clip.name}`);
+        }
+      }
+      
+      return {
+        scene: sceneClone,
+        mixer: mixer,
+        action: action
+      };
+    });
   }
 }

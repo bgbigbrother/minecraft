@@ -56,6 +56,18 @@ export function animate(player, world, dayNightCycle, toolbarUI, gameOverSystem)
       toolbarUI.render();
     }
 
+    // Update block interaction animations (chest animations, etc.)
+    if (player.interactionHandler) {
+      player.interactionHandler.update(dt);
+    }
+    
+    // Update animation mixers for animated blocks (like chests)
+    if (world.activeAnimationMixers && world.activeAnimationMixers.size > 0) {
+      for (const [key, mixer] of world.activeAnimationMixers) {
+        mixer.update(dt);
+      }
+    }
+
     // Update day/night cycle (time progression, lighting, sky colors, celestial bodies)
     dayNightCycle.update(dt);
 

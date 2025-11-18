@@ -10,7 +10,7 @@ import { blocks } from '../../textures/blocks.js';
  * Coordinates specialized input handlers for better code organization
  */
 export class ControllsPlayerBase extends PlayerBase {
-    constructor() {
+    constructor(options = {}) {
         super();
 
         // Sprint mode tracking (shared between handlers)
@@ -18,10 +18,14 @@ export class ControllsPlayerBase extends PlayerBase {
         this.doubleTapWindow = 300; // Time window for double-tap detection (ms)
         this.sprintMode = false; // Whether sprint mode is active
 
+        // Debug flag (shared across all handlers)
+        this.debugControls = options.debugControls || false;
+
         // Instantiate input handlers (public for extensibility)
         this.keyboardHandler = new KeyboardHandler(this);
         this.mouseHandler = new MouseHandler(this);
         this.pointerLockHandler = new PointerLockHandler(this);
+        this.interactionHandler = null; // Will be initialized after world is set
 
         // Set up pointer lock event listeners
         // Hide/show instructions overlay based on pointer lock state
@@ -33,6 +37,14 @@ export class ControllsPlayerBase extends PlayerBase {
         document.addEventListener('keydown', this.onKeyDown.bind(this));
         document.addEventListener('mousedown', this.onMouseDown.bind(this));
         document.addEventListener('wheel', this.onMouseWheel.bind(this), { passive: false });
+    }
+
+    /**
+     * Sets the debug mode flag for all handlers
+     * @param {boolean} enabled - Whether to enable debug logging
+     */
+    setDebugMode(enabled) {
+        this.debugControls = enabled;
     }
 
     /**
@@ -126,4 +138,5 @@ export class ControllsPlayerBase extends PlayerBase {
     onMouseWheel(event) {
         this.mouseHandler.handleMouseWheel(event);
     }
+
 }

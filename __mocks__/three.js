@@ -248,13 +248,18 @@ export class AnimationMixer {
     this.model = model;
   }
   update() {}
-  clipAction() {
+  clipAction(clip) {
     return {
+      reset: () => {},
       play: () => {},
-      stop: () => {}
+      stop: () => {},
+      setLoop: () => {},
+      clampWhenFinished: false
     };
   }
 }
+
+export const LoopOnce = 2200;
 
 export class AnimationClip {
   static findByName(animations, name) {

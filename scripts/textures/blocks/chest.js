@@ -5,5 +5,6 @@ export const chest = new ModelBlock({
   name: 'chest',
   modelPath: './models/chest.glb',
   spawnable: false,
-  debug: false
+  debug: false,
+  animationDuration: 2500 // Animation duration in milliseconds (2.5 seconds)
 });

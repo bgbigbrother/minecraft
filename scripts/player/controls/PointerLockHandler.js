@@ -13,6 +13,25 @@ export class PointerLockHandler {
     }
 
     /**
+     * Logs debug information if debug mode is enabled
+     * @param {string} action - The action being performed
+     * @param {Object} details - Additional details to log
+     */
+    logDebug(action, details) {
+        if (!this.player.debugControls) {
+            return;
+        }
+
+        const timestamp = performance.now().toFixed(0);
+        console.log(`[PointerLockHandler] ${action} at ${timestamp}`);
+        
+        // Log each detail on a separate line with arrow prefix
+        for (const [key, value] of Object.entries(details)) {
+            console.log(`  → ${key}: ${value}`);
+        }
+    }
+
+    /**
      * Called when pointer lock is activated (game starts)
      * Hides the instruction overlay
      */
@@ -21,6 +40,11 @@ export class PointerLockHandler {
         if (overlay) {
             overlay.style.visibility = 'hidden';
         }
+        
+        this.logDebug('Lock', {
+            'Pointer locked': true,
+            'Overlay hidden': true
+        });
     }
 
     /**
@@ -34,6 +58,18 @@ export class PointerLockHandler {
             if (overlay) {
                 overlay.style.visibility = 'visible';
             }
+            
+            this.logDebug('Unlock', {
+                'Pointer locked': false,
+                'Debug camera active': false,
+                'Overlay shown': true
+            });
+        } else {
+            this.logDebug('Unlock', {
+                'Pointer locked': false,
+                'Debug camera active': true,
+                'Overlay shown': false
+            });
         }
     }
 

@@ -1,6 +1,7 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { resources } from './textures/resources';
 import { setStatsEnabled } from './core/stats';
+import { ModelBlock } from './textures/blocks/ModelBlock';
 
 /**
  * Sets up the UI controls
@@ -16,6 +17,19 @@ export function setupUI(world, player, physics, scene) {
   const statsConfig = { showStats: false };
   gui.add(statsConfig, 'showStats').name('Show FPS Stats').onChange((value) => {
     setStatsEnabled(value);
+  });
+
+  // Debug menu folder
+  const debugFolder = gui.addFolder('Debug').close();
+  const debugConfig = {
+    modelBlockDebug: false,
+    playerControlsDebug: player.debugControls || false
+  };
+  debugFolder.add(debugConfig, 'modelBlockDebug').name('Model Block').onChange((value) => {
+    ModelBlock.debug = value;
+  });
+  debugFolder.add(debugConfig, 'playerControlsDebug').name('Player Controls').onChange((value) => {
+    player.setDebugMode(value);
   });
 
   // Player controls folder - adjust movement and debug visualization

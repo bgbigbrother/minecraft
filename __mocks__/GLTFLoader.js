@@ -52,14 +52,35 @@ export class GLTFLoader {
           }
         };
         
-        onLoad({
-          scene: {
-            children: [mockMesh],
-            traverse: function(callback) {
-              callback(this);
-              callback(mockMesh);
-            }
+        const mockScene = {
+          children: [mockMesh],
+          traverse: function(callback) {
+            callback(this);
+            callback(mockMesh);
+          },
+          clone: function() {
+            return {
+              ...this,
+              position: { x: 0, y: 0, z: 0, copy: function(v) { this.x = v.x; this.y = v.y; this.z = v.z; } },
+              scale: { set: function() {} },
+              visible: true,
+              traverse: this.traverse
+            };
           }
+        };
+        
+        // Add animations for chest model
+        const animations = url.includes('chest.glb') ? [
+          {
+            name: 'ChestOpen',
+            duration: 1.0,
+            tracks: []
+          }
+        ] : [];
+        
+        onLoad({
+          scene: mockScene,
+          animations: animations
         });
       }
     }, 0);
