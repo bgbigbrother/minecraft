@@ -79,12 +79,13 @@ describe('ItemThrower', () => {
       // Player at (10, 5, 10) with height 1.75, looking along +Z axis
       const throwPosition = ItemThrower.calculateThrowPosition(mockPlayer);
 
-      // Expected: X = 10 + 0*3 = 10
+      // Expected: X = 10 + 0*3 ± 0.5 random offset
       // Y = 5 + 0 - 1.75/2 = 5 - 0.875 = 4.125 (subtracts half player height)
-      // Z = 10 + 1*3 = 13
-      expect(throwPosition.x).toBeCloseTo(10, 5);
+      // Z = 10 + 1*3 ± 0.5 random offset
+      // Use precision 0 to allow ±0.5 deviation
+      expect(throwPosition.x).toBeCloseTo(10, 0);
       expect(throwPosition.y).toBeCloseTo(4.125, 5);
-      expect(throwPosition.z).toBeCloseTo(13, 5);
+      expect(throwPosition.z).toBeCloseTo(13, 0);
     });
 
     it('should calculate position based on camera direction', () => {
@@ -96,12 +97,12 @@ describe('ItemThrower', () => {
 
       const throwPosition = ItemThrower.calculateThrowPosition(mockPlayer);
 
-      // Expected: X = 10 + 1*3 = 13
+      // Expected: X = 10 + 1*3 ± 0.5 random offset
       // Y = 5 + 0 - 1.75/2 = 4.125
-      // Z = 10 + 0*3 = 10
-      expect(throwPosition.x).toBeCloseTo(13, 5);
+      // Z = 10 + 0*3 ± 0.5 random offset
+      expect(throwPosition.x).toBeCloseTo(13, 0);
       expect(throwPosition.y).toBeCloseTo(4.125, 5);
-      expect(throwPosition.z).toBeCloseTo(10, 5);
+      expect(throwPosition.z).toBeCloseTo(10, 0);
     });
 
     it('should use THROW_DISTANCE constant', () => {
@@ -129,12 +130,12 @@ describe('ItemThrower', () => {
       const throwPosition = ItemThrower.calculateThrowPosition(mockPlayer);
 
       // Direction is (1/√2, 0, 1/√2), distance is 3
-      // Expected X: 10 + 3 * (1/√2) ≈ 10 + 2.121 = 12.121
+      // Expected X: 10 + 3 * (1/√2) ± 0.5 ≈ 12.121 ± 0.5
       // Expected Y: 5 + 0 - 1.75/2 = 4.125
-      // Expected Z: 10 + 3 * (1/√2) ≈ 10 + 2.121 = 12.121
-      expect(throwPosition.x).toBeCloseTo(12.121, 2);
+      // Expected Z: 10 + 3 * (1/√2) ± 0.5 ≈ 12.121 ± 0.5
+      expect(throwPosition.x).toBeCloseTo(12.121, 0);
       expect(throwPosition.y).toBeCloseTo(4.125, 5);
-      expect(throwPosition.z).toBeCloseTo(12.121, 2);
+      expect(throwPosition.z).toBeCloseTo(12.121, 0);
     });
 
     it('should handle upward camera directions', () => {
@@ -150,8 +151,8 @@ describe('ItemThrower', () => {
       // Y calculation: player.position.y + direction.y - player.height/2
       // = 5 + (1/√2) - 0.875 ≈ 5 + 0.707 - 0.875 = 4.832
       expect(throwPosition.y).toBeCloseTo(4.832, 2);
-      // Z should be affected by direction: 10 + (1/√2)*3 ≈ 12.121
-      expect(throwPosition.z).toBeCloseTo(12.121, 2);
+      // Z should be affected by direction: 10 + (1/√2)*3 ± 0.5 ≈ 12.121 ± 0.5
+      expect(throwPosition.z).toBeCloseTo(12.121, 0);
     });
   });
 
@@ -216,11 +217,11 @@ describe('ItemThrower', () => {
       const spawnedItem = mockWorld.spawnedItems[0];
       expect(spawnedItem.blockId).toBe(3);
       
-      // Position should be 3 blocks in front of player
-      // X = 10, Y = 5 + 0 - 1.75/2 = 4.125, Z = 13
-      expect(spawnedItem.position.x).toBeCloseTo(10, 5);
+      // Position should be 3 blocks in front of player with random offset
+      // X = 10 ± 0.5, Y = 5 + 0 - 1.75/2 = 4.125, Z = 13 ± 0.5
+      expect(spawnedItem.position.x).toBeCloseTo(10, 0);
       expect(spawnedItem.position.y).toBeCloseTo(4.125, 5);
-      expect(spawnedItem.position.z).toBeCloseTo(13, 5);
+      expect(spawnedItem.position.z).toBeCloseTo(13, 0);
     });
 
     it('should update toolbar display', () => {
@@ -300,9 +301,9 @@ describe('ItemThrower', () => {
 
       const spawnedItem = mockWorld.spawnedItems[0];
       
-      // Should spawn at (10-3, 6.6, 10) = (7, 6.6, 10)
-      expect(spawnedItem.position.x).toBeCloseTo(7, 5);
-      expect(spawnedItem.position.z).toBeCloseTo(10, 5);
+      // Should spawn at (10-3 ± 0.5, 4.125, 10 ± 0.5) = (7 ± 0.5, 4.125, 10 ± 0.5)
+      expect(spawnedItem.position.x).toBeCloseTo(7, 0);
+      expect(spawnedItem.position.z).toBeCloseTo(10, 0);
     });
 
     it('should not throw if removeItem fails', () => {

@@ -886,10 +886,10 @@ describe('Item Throwing Integration', () => {
     
     const thrownItem = world.droppedItems[0];
     
-    // Item should be 3 blocks in +X direction from player
-    // Player at (10, 10, 10), item should be around (13, 8.25, 10)
-    expect(thrownItem.position.x).toBeCloseTo(13, 1);
-    expect(thrownItem.position.z).toBeCloseTo(10, 1);
+    // Item should be 3 blocks in +X direction from player with random offset
+    // Player at (10, 10, 10), item should be around (13 ± 0.5, 8.25, 10 ± 0.5)
+    expect(thrownItem.position.x).toBeCloseTo(13, 0);
+    expect(thrownItem.position.z).toBeCloseTo(10, 0);
   });
 
   test('should decrease inventory quantity after throwing', () => {

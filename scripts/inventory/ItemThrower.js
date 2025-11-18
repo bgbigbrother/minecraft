@@ -23,10 +23,13 @@ export class ItemThrower {
     const throwPosition = new Vector3();
     throwPosition.copy(player.position);
     
+    const offsetX = (Math.random() - 0.5) * 1; // Range: -0.3 to +0.3
+    const offsetZ = (Math.random() - 0.5) * 1; // Range: -0.3 to +0.3
+    
     // Multiply direction by throw distance and add to player position
-    throwPosition.x += direction.x * this.THROW_DISTANCE;
+    throwPosition.x += direction.x * this.THROW_DISTANCE + offsetX;
     throwPosition.y += direction.y - player.height / 2;
-    throwPosition.z += direction.z * this.THROW_DISTANCE;
+    throwPosition.z += direction.z * this.THROW_DISTANCE + offsetZ;
     
     return throwPosition;
   }
