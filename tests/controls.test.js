@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, jest, afterEach } from '@jest/globals';
-import { ControllsPlayerBase } from '../scripts/player/controls.js';
+import { ControllsPlayerBase } from '../scripts/player/controls/index.js';
 
 // Mock blocks
 jest.mock('../scripts/textures/blocks.js', () => ({
@@ -325,9 +325,8 @@ describe('ControllsPlayerBase', () => {
       test('should not reset position on KeyR when repeat is true', () => {
         player.controls.isLocked = true;
         player.position.y = 10;
-        player.repeat = true;
         
-        player.onKeyDown({ code: 'KeyR', key: 'r' });
+        player.onKeyDown({ code: 'KeyR', key: 'r', repeat: true });
         
         expect(player.position.y).toBe(10);
       });
@@ -394,12 +393,12 @@ describe('ControllsPlayerBase', () => {
       expect(mockWorld.removeBlock).toHaveBeenCalledWith(5, 10, 15);
     });
 
-    test('should add block when block type is selected', () => {
+    test('should add block when block type is selected and right-click is used', () => {
       player.controls.isLocked = true;
       player.activeBlockId = 1;
       player.selectedCoords = { x: 5, y: 10, z: 15 };
       
-      player.onMouseDown({ button: 0 });
+      player.onMouseDown({ button: 2 }); // Right-click
       
       expect(mockWorld.addBlock).toHaveBeenCalledWith(5, 10, 15, 1);
     });
@@ -491,6 +490,110 @@ describe('ControllsPlayerBase', () => {
       
       expect(() => player.onMouseDown({ button: 0 })).not.toThrow();
       jest.useRealTimers();
+    });
+  });
+
+  describe('onMouseDown - right-click block placement (NEW)', () => {
+    test('should place block on right-click when block type is selected', () => {
+      player.controls.isLocked = true;
+      player.activeBlockId = 1;
+      player.selectedCoords = { x: 5, y: 10, z: 15 };
+      
+      player.onMouseDown({ button: 2 }); // Right-click
+      
+      expect(mockWorld.addBlock).toHaveBeenCalledWith(5, 10, 15, 1);
+    });
+
+    test('should not place block on right-click when pickaxe is selected', () => {
+      player.controls.isLocked = true;
+      player.activeBlockId = 0; // Pickaxe
+      player.selectedCoords = { x: 5, y: 10, z: 15 };
+      
+      player.onMouseDown({ button: 2 }); // Right-click
+      
+      expect(mockWorld.addBlock).not.toHaveBeenCalled();
+    });
+
+    test('should trigger tool animation on right-click block placement', () => {
+      jest.useFakeTimers();
+      player.controls.isLocked = true;
+      player.activeBlockId = 1;
+      player.selectedCoords = { x: 5, y: 10, z: 15 };
+      player.tool.animate = false;
+      
+      player.onMouseDown({ button: 2 }); // Right-click
+      
+      expect(player.tool.animate).toBe(true);
+      jest.useRealTimers();
+    });
+
+    test('should not place block on right-click when controls are not locked', () => {
+      player.controls.isLocked = false;
+      player.activeBlockId = 1;
+      player.selectedCoords = { x: 5, y: 10, z: 15 };
+      
+      player.onMouseDown({ button: 2 }); // Right-click
+      
+      expect(mockWorld.addBlock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onMouseWheel - toolbar navigation (NEW)', () => {
+    test('should move to next slot on scroll up', () => {
+      player.controls.isLocked = true;
+      player.activeBlockId = 1; // Currently on slot 1
+      mockWorld.toolbarUI.selectedSlot = 1;
+      
+      const event = { deltaY: -100, preventDefault: jest.fn() };
+      player.onMouseWheel(event);
+      
+      expect(mockWorld.toolbarUI.setSelectedSlot).toHaveBeenCalledWith(2);
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    test('should move to previous slot on scroll down', () => {
+      player.controls.isLocked = true;
+      player.activeBlockId = 2; // Currently on slot 2
+      mockWorld.toolbarUI.selectedSlot = 2;
+      
+      const event = { deltaY: 100, preventDefault: jest.fn() };
+      player.onMouseWheel(event);
+      
+      expect(mockWorld.toolbarUI.setSelectedSlot).toHaveBeenCalledWith(1);
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    test('should wrap from slot 8 to slot 0 on scroll up', () => {
+      player.controls.isLocked = true;
+      player.activeBlockId = 8; // Currently on slot 8
+      mockWorld.toolbarUI.selectedSlot = 8;
+      
+      const event = { deltaY: -100, preventDefault: jest.fn() };
+      player.onMouseWheel(event);
+      
+      expect(mockWorld.toolbarUI.setSelectedSlot).toHaveBeenCalledWith(0);
+    });
+
+    test('should wrap from slot 0 to slot 8 on scroll down', () => {
+      player.controls.isLocked = true;
+      player.activeBlockId = 0; // Currently on slot 0
+      mockWorld.toolbarUI.selectedSlot = 0;
+      
+      const event = { deltaY: 100, preventDefault: jest.fn() };
+      player.onMouseWheel(event);
+      
+      expect(mockWorld.toolbarUI.setSelectedSlot).toHaveBeenCalledWith(8);
+    });
+
+    test('should not scroll toolbar when controls are not locked', () => {
+      player.controls.isLocked = false;
+      player.activeBlockId = 1;
+      mockWorld.toolbarUI.selectedSlot = 1;
+      
+      const event = { deltaY: -100, preventDefault: jest.fn() };
+      player.onMouseWheel(event);
+      
+      expect(mockWorld.toolbarUI.setSelectedSlot).not.toHaveBeenCalled();
     });
   });
 });

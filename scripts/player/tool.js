@@ -1,4 +1,4 @@
-import { ControllsPlayerBase } from './controls';
+import { ControllsPlayerBase } from './controls/index.js';
 import { ToolLoader } from './tool_loader';
 
 /**
