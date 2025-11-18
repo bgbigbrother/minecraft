@@ -41,6 +41,11 @@ export class Terrain extends THREE.Group {
      * @returns {{id: number, instanceId: number}}
      */
     getBlock(x, y, z) {
+        // Round coordinates to handle floating point precision issues
+        x = Math.floor(x);
+        y = Math.floor(y);
+        z = Math.floor(z);
+        
         if (this.inBounds(x, y, z)) {
             return this.data[x][y][z];
         } else {
@@ -56,6 +61,11 @@ export class Terrain extends THREE.Group {
     * @param {number} id
     */
     setBlockId(x, y, z, id) {
+        // Round coordinates to handle floating point precision issues
+        x = Math.floor(x);
+        y = Math.floor(y);
+        z = Math.floor(z);
+        
         if (this.inBounds(x, y, z)) {
             this.data[x][y][z].id = id;
         }
@@ -69,6 +79,11 @@ export class Terrain extends THREE.Group {
     * @param {number} instanceId
     */
     setBlockInstanceId(x, y, z, instanceId) {
+        // Round coordinates to handle floating point precision issues
+        x = Math.floor(x);
+        y = Math.floor(y);
+        z = Math.floor(z);
+        
         if (this.inBounds(x, y, z)) {
             this.data[x][y][z].instanceId = instanceId;
         }
@@ -99,6 +114,11 @@ export class Terrain extends THREE.Group {
     * @returns {boolean}
     */
     isBlockObscured(x, y, z) {
+        // Round coordinates to handle floating point precision issues
+        x = Math.floor(x);
+        y = Math.floor(y);
+        z = Math.floor(z);
+        
         const up = this.getBlock(x, y + 1, z)?.id ?? blocks.empty.id;
         const down = this.getBlock(x, y - 1, z)?.id ?? blocks.empty.id;
         const left = this.getBlock(x + 1, y, z)?.id ?? blocks.empty.id;
@@ -132,6 +152,14 @@ export class Terrain extends THREE.Group {
         if (block && block.id !== blocks.empty.id && block.instanceId === null) {
             // Get the mesh and instance id of the block
             const mesh = this.children.find((instanceMesh) => instanceMesh.name === block.id);
+            
+            // If mesh doesn't exist (e.g., model not loaded yet), skip instance creation
+            if (!mesh) {
+                // This is expected for model blocks that haven't finished loading yet
+                // The placement should be prevented at a higher level
+                return;
+            }
+            
             const instanceId = mesh.count++;
             this.setBlockInstanceId(x, y, z, instanceId);
 

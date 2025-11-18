@@ -141,7 +141,15 @@ export class Biome extends Terrain {
         Object.values(blocks)
         .filter(blockType => blockType.id !== blocks.empty.id)
         .forEach(blockType => {
-            const mesh = new THREE.InstancedMesh(geometry, blockType.material, maxCount);
+            // Check if block has custom geometry (model-based blocks)
+            const blockGeometry = blockType.geometry || geometry;
+            
+            // Skip creating mesh if geometry is not loaded yet (for model-based blocks)
+            if (blockType.isModel && !blockType.geometry) {
+                return;
+            }
+            
+            const mesh = new THREE.InstancedMesh(blockGeometry, blockType.material, maxCount);
             mesh.name = blockType.id;
             mesh.count = 0;
             mesh.castShadow = true;
@@ -158,6 +166,10 @@ export class Biome extends Terrain {
                     if (blockId === blocks.empty.id) continue;
 
                     const mesh = meshes[blockId];
+                    
+                    // Skip if mesh doesn't exist (geometry not loaded yet)
+                    if (!mesh) continue;
+                    
                     const instanceId = mesh.count;
 
                     if (!this.isBlockObscured(x, y, z)) {

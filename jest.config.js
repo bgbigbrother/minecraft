@@ -9,6 +9,7 @@ export default {
   moduleNameMapper: {
     '^three$': '<rootDir>/__mocks__/three.js',
     '^three/addons/controls/PointerLockControls.js$': '<rootDir>/__mocks__/PointerLockControls.js',
+    '^three/addons/loaders/GLTFLoader.js$': '<rootDir>/__mocks__/GLTFLoader.js',
     '^.*/player/body/simple$': '<rootDir>/__mocks__/simpleCharacter.js',
     '\\.(jpg|jpeg|png|gif|svg|mp3|glb|ttf)$': '<rootDir>/__mocks__/fileMock.js',
   },
