@@ -4,23 +4,19 @@ import { Box, Typography, List, ListItem, ListItemButton, ListItemText, Alert, I
 import DeleteIcon from '@mui/icons-material/Delete';
 import MenuLayout from './MenuLayout.jsx';
 import { useLocalization } from '../hooks/useLocalization.js';
-import useEventBus from '../hooks/useEventBus.js';
-import usePointerLock from '../hooks/usePointerLock.js';
 import { getAllWorlds, deleteWorld } from '../utils/storage.js';
 
 /**
  * LoadGame Component
  * 
  * Displays a list of saved game worlds and allows the user to select one to load.
- * Retrieves saved games from localStorage, emits load event, and requests pointer lock.
+ * Retrieves saved games from localStorage, calls game bridge to load, and requests pointer lock.
  * 
  * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5
  */
 const LoadGame = memo(() => {
   const navigate = useNavigate();
   const { strings } = useLocalization();
-  const { emit } = useEventBus();
-  const { requestLock } = usePointerLock();
 
   // State for saved games
   const [savedGames, setSavedGames] = useState([]);
@@ -70,15 +66,22 @@ const LoadGame = memo(() => {
 
   /**
    * Handle world selection
-   * Emits load event with world data and requests pointer lock
+   * Calls game bridge to load world data and requests pointer lock
    * @param {Object} worldData - The selected world data
    */
   const handleWorldSelect = (worldData) => {
-    // Emit event to load the selected world
-    emit('menu:game:load:world', { worldData });
-
-    // Request pointer lock to start the game
-    requestLock();
+    // Call game bridge to load the selected world
+    if (window.gameBridge && window.gameBridge.loadGame) {
+      window.gameBridge.loadGame(worldData);
+      
+      // Request pointer lock to start the game
+      if (window.gameBridge.requestPointerLock) {
+        window.gameBridge.requestPointerLock();
+      }
+    } else {
+      console.error('Game bridge not initialized');
+      alert('Game system not ready. Please refresh the page.');
+    }
   };
 
   /**

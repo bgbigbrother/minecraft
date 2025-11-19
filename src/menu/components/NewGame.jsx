@@ -3,22 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { Box, TextField, Button, Alert } from '@mui/material';
 import MenuLayout from './MenuLayout.jsx';
 import { useLocalization } from '../hooks/useLocalization.js';
-import useEventBus from '../hooks/useEventBus.js';
-import usePointerLock from '../hooks/usePointerLock.js';
 
 /**
  * NewGame Component
  * 
  * Provides a form for creating a new game world with a custom name.
- * Validates input, emits game start event, and requests pointer lock.
+ * Validates input, calls game bridge to start new game, and requests pointer lock.
  * 
  * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5
  */
 const NewGame = memo(() => {
   const navigate = useNavigate();
   const { strings } = useLocalization();
-  const { emit } = useEventBus();
-  const { requestLock } = usePointerLock();
 
   // Form state
   const [worldName, setWorldName] = useState('');
@@ -59,7 +55,7 @@ const NewGame = memo(() => {
 
   /**
    * Handle form submission
-   * Validates input, emits game start event, and requests pointer lock
+   * Validates input, calls game bridge to start new game, and requests pointer lock
    */
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -71,11 +67,18 @@ const NewGame = memo(() => {
 
     const trimmedName = worldName.trim();
 
-    // Emit event to start new game
-    emit('menu:game:start:newGame', { worldName: trimmedName });
-
-    // Request pointer lock to start the game
-    requestLock();
+    // Call game bridge to start new game
+    if (window.gameBridge && window.gameBridge.startNewGame) {
+      window.gameBridge.startNewGame(trimmedName);
+      
+      // Request pointer lock to start the game
+      if (window.gameBridge.requestPointerLock) {
+        window.gameBridge.requestPointerLock();
+      }
+    } else {
+      console.error('Game bridge not initialized');
+      setError('Game system not ready. Please refresh the page.');
+    }
   };
 
   return (

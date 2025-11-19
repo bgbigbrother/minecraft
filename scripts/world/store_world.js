@@ -1,7 +1,6 @@
 import { WorldBaseClass } from './base';
 import { DataStore } from './world_store';
 import { saveWorld } from '../../src/menu/utils/storage.js';
-import eventBus from '../../src/menu/utils/eventBus.js';
 
 /**
  * Extends world with save/load functionality
@@ -54,9 +53,6 @@ export class StoreWorldBaseClass extends WorldBaseClass {
             
             // Save using storage utility
             saveWorld(this.name, worldData);
-            
-            // Emit save complete event
-            eventBus.emit('game:world:save:complete', { worldName: this.name });
             
             // Show save confirmation message
             document.getElementById('status').innerHTML = 'GAME SAVED';

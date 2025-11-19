@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Slider, Switch, FormControlLabel } from '@mui/material';
 import MenuLayout from './MenuLayout';
 import { useLocalization } from '../hooks/useLocalization';
-import useEventBus from '../hooks/useEventBus';
 import { loadSettings, saveSettings } from '../utils/storage';
 
 /**
@@ -13,7 +12,7 @@ import { loadSettings, saveSettings } from '../utils/storage';
  * - Music volume (0-100)
  * - Show FPS toggle
  * 
- * Settings are persisted to localStorage and emitted via event bus
+ * Settings are persisted to localStorage and applied via game bridge
  * for game systems to consume.
  * 
  * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5
@@ -21,7 +20,6 @@ import { loadSettings, saveSettings } from '../utils/storage';
 const Options = memo(() => {
   const navigate = useNavigate();
   const { strings } = useLocalization();
-  const { emit } = useEventBus();
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -44,7 +42,7 @@ const Options = memo(() => {
 
   /**
    * Handle setting change
-   * Updates local state, emits event, and persists to localStorage
+   * Updates local state, calls game bridge, and persists to localStorage
    */
   const handleSettingChange = (key, value) => {
     // Update local state
@@ -54,8 +52,12 @@ const Options = memo(() => {
     };
     setSettings(newSettings);
 
-    // Emit event for game systems to consume
-    emit('menu:options:update:setting', { key, value });
+    // Call game bridge to update setting
+    if (window.gameBridge && window.gameBridge.updateSetting) {
+      window.gameBridge.updateSetting(key, value);
+    } else {
+      console.warn('Game bridge not initialized, setting will be applied on next game start');
+    }
 
     // Persist to localStorage
     try {

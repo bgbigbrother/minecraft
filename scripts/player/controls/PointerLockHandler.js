@@ -1,9 +1,7 @@
-import eventBus from '../../../src/menu/utils/eventBus.js';
-
 /**
  * PointerLockHandler
  * Manages pointer lock state and related UI transitions
- * Emits events for menu system to handle overlay visibility
+ * React components listen directly to browser pointer lock events
  */
 export class PointerLockHandler {
     /**
@@ -35,31 +33,22 @@ export class PointerLockHandler {
 
     /**
      * Called when pointer lock is activated (game starts)
-     * Emits event for menu system to handle overlay visibility
+     * React components listen directly to browser pointer lock events
      */
     handleLock() {
-        // Emit event for menu system to handle overlay visibility
-        eventBus.emit('menu:pointerlock:change:state', { locked: true });
-        
         this.logDebug('Lock', {
-            'Pointer locked': true,
-            'Event emitted': 'menu:pointerlock:change:state'
+            'Pointer locked': true
         });
     }
 
     /**
      * Called when pointer lock is released (ESC pressed)
-     * Emits event for menu system to handle overlay visibility
+     * React components listen directly to browser pointer lock events
      */
     handleUnlock() {
-        // Emit event for menu system to handle overlay visibility
-        // Menu system will decide whether to show overlay based on game state
-        eventBus.emit('menu:pointerlock:change:state', { locked: false });
-        
         this.logDebug('Unlock', {
             'Pointer locked': false,
-            'Debug camera active': this.player.debugCamera,
-            'Event emitted': 'menu:pointerlock:change:state'
+            'Debug camera active': this.player.debugCamera
         });
     }
 

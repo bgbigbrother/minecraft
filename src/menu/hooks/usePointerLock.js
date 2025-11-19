@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import eventBus from '../utils/eventBus.js';
 
 /**
  * React hook for managing pointer lock state
  * Tracks pointer lock status and provides control functions
- * Emits events when pointer lock state changes
  * 
  * @returns {Object} Object with isLocked state and control functions
  * 
@@ -66,18 +64,12 @@ function usePointerLock() {
    */
   useEffect(() => {
     const handlePointerLockChange = () => {
-      const locked = checkLockState();
-      
-      // Emit event for other parts of the application
-      eventBus.emit('menu:pointerlock:change:state', { locked });
+      checkLockState();
     };
 
     const handlePointerLockError = (error) => {
       console.error('Pointer lock error:', error);
       setIsLocked(false);
-      
-      // Emit error event
-      eventBus.emit('menu:pointerlock:change:state', { locked: false, error: true });
     };
 
     // Listen to pointer lock change events

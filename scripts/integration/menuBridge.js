@@ -1,9 +1,7 @@
 /**
- * Menu Bridge - Connects game systems to the event bus
- * Handles communication between the React menu UI and Three.js game engine
+ * Menu Bridge - Provides interface between React UI and game systems
+ * Exposes game functions to React components via window.gameBridge
  */
-
-import eventBus from '../../src/menu/utils/eventBus.js';
 import { World } from '../world/world.js';
 import { Player } from '../player/player.js';
 import { Physics } from '../physics/physics.js';
@@ -33,7 +31,7 @@ let gameState = {
 };
 
 /**
- * Initialize the menu bridge and set up event listeners
+ * Initialize the menu bridge and expose game functions
  * This should be called once at application startup
  */
 export function initializeMenuBridge() {
@@ -45,22 +43,27 @@ export function initializeMenuBridge() {
     console.log('3D models loaded and ready');
   });
   
-  // Listen for new game start event
-  eventBus.on('menu:game:start:newGame', handleNewGame);
-  
-  // Listen for load game event
-  eventBus.on('menu:game:load:world', handleLoadGame);
-  
-  // Listen for options update event
-  eventBus.on('menu:options:update:setting', handleOptionsUpdate);
+  // Expose game functions to React components via window.gameBridge
+  window.gameBridge = {
+    startNewGame: (worldName) => handleNewGame({ worldName }),
+    loadGame: (worldData) => handleLoadGame({ worldData }),
+    updateSetting: (key, value) => handleOptionsUpdate({ key, value }),
+    isPointerLocked: () => document.pointerLockElement !== null,
+    requestPointerLock: () => {
+      const canvas = document.querySelector('#app canvas');
+      if (canvas) {
+        canvas.requestPointerLock();
+      }
+    }
+  };
   
   console.log('Menu bridge initialized');
 }
 
 /**
- * Handle new game start event from menu
+ * Handle new game start from menu
  * Initializes a fresh world with the provided world name
- * @param {Object} payload - Event payload containing worldName
+ * @param {Object} payload - Payload containing worldName
  */
 function handleNewGame(payload) {
   const { worldName } = payload;
@@ -125,18 +128,14 @@ function handleNewGame(payload) {
     console.log(`New game "${worldName}" started successfully`);
   } catch (error) {
     console.error('Failed to start new game:', error);
-    // Emit error event for UI to handle
-    eventBus.emit('game:error:initialization', { 
-      message: 'Failed to start new game',
-      error: error.message 
-    });
+    alert(`Failed to start new game: ${error.message}`);
   }
 }
 
 /**
- * Handle load game event from menu
+ * Handle load game from menu
  * Loads a saved world and restores player state
- * @param {Object} payload - Event payload containing world data
+ * @param {Object} payload - Payload containing world data
  */
 function handleLoadGame(payload) {
   const { worldData } = payload;
@@ -206,18 +205,14 @@ function handleLoadGame(payload) {
     console.log(`Game "${worldData.name}" loaded successfully`);
   } catch (error) {
     console.error('Failed to load game:', error);
-    // Emit error event for UI to handle
-    eventBus.emit('game:error:load', { 
-      message: 'Failed to load game',
-      error: error.message 
-    });
+    alert(`Failed to load game: ${error.message}`);
   }
 }
 
 /**
- * Handle options update event from menu
+ * Handle options update from menu
  * Applies settings to game systems
- * @param {Object} payload - Event payload containing key and value
+ * @param {Object} payload - Payload containing key and value
  */
 function handleOptionsUpdate(payload) {
   const { key, value } = payload;
@@ -245,10 +240,6 @@ function handleOptionsUpdate(payload) {
     }
   } catch (error) {
     console.error(`Failed to apply setting ${key}:`, error);
-    // Emit error event for UI to handle
-    eventBus.emit('game:error:settings', { 
-      message: `Failed to apply setting: ${key}`,
-      error: error.message 
-    });
+    alert(`Failed to apply setting ${key}: ${error.message}`);
   }
 }

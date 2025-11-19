@@ -20,17 +20,8 @@ jest.mock('../src/menu/utils/storage.js', () => ({
   getAllWorlds: jest.fn(() => [])
 }));
 
-// Mock the event bus
-jest.mock('../src/menu/utils/eventBus.js');
-
 import { StoreWorldBaseClass } from '../scripts/world/store_world.js';
 import { saveWorld } from '../src/menu/utils/storage.js';
-import eventBus from '../src/menu/utils/eventBus.js';
-
-// Set up event bus mocks after import
-eventBus.emit = jest.fn();
-eventBus.on = jest.fn();
-eventBus.off = jest.fn();
 
 describe('StoreWorldBaseClass', () => {
   let world;
@@ -40,9 +31,6 @@ describe('StoreWorldBaseClass', () => {
     // Reset mocks
     mockLocalStorage.getItem.mockClear();
     mockLocalStorage.setItem.mockClear();
-    eventBus.emit.mockClear();
-    eventBus.on.mockClear();
-    eventBus.off.mockClear();
     jest.clearAllMocks();
 
     // Mock document with proper status element
@@ -96,11 +84,6 @@ describe('StoreWorldBaseClass', () => {
         health: 85,
         inventory: { items: { 1: 5, 2: 3 } }
       }
-    });
-    
-    // Verify event was emitted
-    expect(eventBus.emit).toHaveBeenCalledWith('game:world:save:complete', {
-      worldName: 'Test World'
     });
   });
 
