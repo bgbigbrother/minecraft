@@ -14,6 +14,10 @@
     "create": "Create World",
     "errorEmpty": "World name cannot be empty"
   },
+  "gameRunning": {
+    "title": "Game Menu",
+    "save": "Save and Go to Menu"
+  },
   "loadGame": {
     "title": "Load Game",
     "noSaves": "No saved games found",

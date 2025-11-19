@@ -72,6 +72,9 @@ const LoadGame = memo(() => {
   const handleWorldSelect = (worldData) => {
     // TODO: Implement game load logic
     console.log('Loading world:', worldData);
+    
+    // Navigate to game route
+    navigate('/game');
   };
 
   /**

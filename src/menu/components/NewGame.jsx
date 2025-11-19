@@ -78,6 +78,8 @@ const NewGame = memo(() => {
     
     document.dispatchEvent(gameStartEvent);
     
+    // Navigate to game route
+    navigate('/game');
   };
 
   return (

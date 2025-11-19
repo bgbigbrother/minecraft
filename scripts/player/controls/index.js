@@ -38,17 +38,21 @@ export class ControllsPlayerBase extends PlayerBase {
     setupEventListeners() {
         // Set up pointer lock event listeners
         // Hide/show instructions overlay based on pointer lock state
-        // this.controls.addEventListener('lock', this.onCameraLock.bind(this));
-        // this.controls.addEventListener('unlock', this.onCameraUnlock.bind(this));
+        // this.controls.addEventListener('lock', this.onCameraLock);
+        this.controls.addEventListener('unlock', this.onCameraUnlock.bind(this));
 
         // Set up keyboard and mouse input listeners
-        document.addEventListener('keyup', this.onKeyUp.bind(this));
-        document.addEventListener('keydown', this.onKeyDown.bind(this));
-        document.addEventListener('mousedown', this.onMouseDown.bind(this));
+        document.removeEventListener('keyup', this.onKeyUp);
+        document.addEventListener('keyup', this.onKeyUp);
+        document.removeEventListener('keydown', this.onKeyDown);
+        document.addEventListener('keydown', this.onKeyDown);
+        document.removeEventListener('mousedown', this.onMouseDown);
+        document.addEventListener('mousedown', this.onMouseDown);
         document.addEventListener('wheel', this.onMouseWheel.bind(this), { passive: false });
 
         // Register listener on document
-        document.addEventListener('game:menu:start:new', this.onCameraLock.bind(this));
+        document.removeEventListener('game:menu:start:new', this.onCameraLock);
+        document.addEventListener('game:menu:start:new', this.onCameraLock);
     }
 
     /**
@@ -103,7 +107,7 @@ export class ControllsPlayerBase extends PlayerBase {
      * Called when pointer lock is activated (game starts)
      * Delegates to PointerLockHandler and dispatches event
      */
-    onCameraLock() {
+    onCameraLock = () => {
         // Lock pointer on any key press if not already locked
         if (!this.controls.isLocked) {
             this.debugCamera = false;
@@ -155,7 +159,7 @@ export class ControllsPlayerBase extends PlayerBase {
      * Delegates to KeyboardHandler
      * @param {KeyboardEvent} event - Keyboard event object
      */
-    onKeyUp(event) {
+    onKeyUp = (event) => {
         this.keyboardHandler.handleKeyUp(event);
     }
 
@@ -164,7 +168,7 @@ export class ControllsPlayerBase extends PlayerBase {
      * Delegates to KeyboardHandler
      * @param {KeyboardEvent} event - Keyboard event object
      */
-    onKeyDown(event) {
+    onKeyDown = (event) => {
         this.keyboardHandler.handleKeyDown(event);
     }
 
@@ -173,7 +177,7 @@ export class ControllsPlayerBase extends PlayerBase {
      * Delegates to MouseHandler
      * @param {MouseEvent} event - Mouse event object
      */
-    onMouseDown(event) {
+    onMouseDown = (event) => {
         this.mouseHandler.handleMouseDown(event);
     }
 

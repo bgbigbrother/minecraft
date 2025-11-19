@@ -7,6 +7,7 @@ import usePointerLock from './hooks/usePointerLock.js';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import MainMenu from './components/MainMenu.jsx';
 import NewGame from './components/NewGame.jsx';
+import GameRunning from './components/GameRunning.jsx';
 import LoadGame from './components/LoadGame.jsx';
 import Controls from './components/Controls.jsx';
 import Options from './components/Options.jsx';
@@ -27,6 +28,7 @@ function AnimatedRoutes() {
           <Route path="/load" element={<ErrorBoundary><LoadGame /></ErrorBoundary>} />
           <Route path="/controls" element={<ErrorBoundary><Controls /></ErrorBoundary>} />
           <Route path="/options" element={<ErrorBoundary><Options /></ErrorBoundary>} />
+          <Route path="/game" element={<ErrorBoundary><GameRunning /></ErrorBoundary>} />
         </Routes>
       </div>
     </Fade>
