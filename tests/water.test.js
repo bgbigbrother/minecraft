@@ -443,6 +443,7 @@ describe('Water System', () => {
     });
 
     test('should set input.y when Space pressed in water', () => {
+      player.controls.isLocked = true;
       player.inWater = true;
       player.onGround = false;
       
@@ -453,6 +454,7 @@ describe('Water System', () => {
     });
 
     test('should set input.y when Shift pressed in water', () => {
+      player.controls.isLocked = true;
       player.inWater = true;
       
       const event = new KeyboardEvent('keydown', { code: 'ShiftLeft' });
@@ -480,6 +482,7 @@ describe('Water System', () => {
     });
 
     test('should jump when Space pressed on ground (not in water)', () => {
+      player.controls.isLocked = true;
       player.inWater = false;
       player.onGround = true;
       player.velocity.y = 0;

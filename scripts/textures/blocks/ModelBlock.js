@@ -106,8 +106,6 @@ export class ModelBlock {
         properties: Object.keys(this._material)
       });
     }
-    
-    console.log(`${this.name} model loaded successfully`);
   }
   
   _onLoadError(error) {

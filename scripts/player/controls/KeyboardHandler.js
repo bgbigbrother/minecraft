@@ -43,12 +43,6 @@ export class KeyboardHandler {
                 'Repeat': event.repeat
             });
 
-            // Lock pointer on any key press if not already locked
-            if (!this.player.controls.isLocked) {
-                this.player.debugCamera = false;
-                this.player.controls.lock();
-            }
-
             switch (event.code) {
                 // Number keys 0-9: Select block type from hotbar
                 case 'Digit0':

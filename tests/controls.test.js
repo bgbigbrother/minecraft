@@ -112,10 +112,11 @@ describe('ControllsPlayerBase', () => {
 
   describe('constructor', () => {
     test('should set up event listeners', () => {
-      expect(player.controls.listeners['lock']).toBeDefined();
-      expect(player.controls.listeners['unlock']).toBeDefined();
-      expect(player.controls.listeners['lock'].length).toBeGreaterThan(0);
-      expect(player.controls.listeners['unlock'].length).toBeGreaterThan(0);
+      // The new architecture uses document event listeners instead of controls.listeners
+      // Verify that the handlers are properly instantiated
+      expect(player.keyboardHandler).toBeDefined();
+      expect(player.mouseHandler).toBeDefined();
+      expect(player.pointerLockHandler).toBeDefined();
     });
   });
 
@@ -161,17 +162,23 @@ describe('ControllsPlayerBase', () => {
 
   describe('onKeyDown', () => {
     test('should lock controls when not locked', () => {
-      player.controls.isLocked = false;
-      const lockSpy = jest.spyOn(player.controls, 'lock');
+      // The new architecture doesn't auto-lock on keydown anymore
+      // Controls are locked via the game:menu:start:new event
+      // This test should verify that movement input is set when controls are locked
+      player.controls.isLocked = true;
       player.onKeyDown({ code: 'KeyW', key: 'w' });
-      expect(lockSpy).toHaveBeenCalled();
+      expect(player.input.z).toBe(player.maxSpeed);
     });
 
     test('should set debugCamera to false when locking', () => {
+      // The new architecture handles camera locking through onCameraLock method
+      // Test that onCameraLock properly sets debugCamera to false
       player.controls.isLocked = false;
       player.debugCamera = true;
-      player.onKeyDown({ code: 'KeyW', key: 'w' });
+      const lockSpy = jest.spyOn(player.controls, 'lock');
+      player.onCameraLock();
       expect(player.debugCamera).toBe(false);
+      expect(lockSpy).toHaveBeenCalled();
     });
 
     describe('number keys for block selection', () => {

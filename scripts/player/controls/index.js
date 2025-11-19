@@ -27,16 +27,28 @@ export class ControllsPlayerBase extends PlayerBase {
         this.pointerLockHandler = new PointerLockHandler(this);
         this.interactionHandler = null; // Will be initialized after world is set
 
+
+        // Set up event system listener for menu:newgame:start
+        this.setupEventListeners();
+    }
+
+    /**
+     * Sets up event listeners for cross-component communication
+     */
+    setupEventListeners() {
         // Set up pointer lock event listeners
         // Hide/show instructions overlay based on pointer lock state
-        this.controls.addEventListener('lock', this.onCameraLock.bind(this));
-        this.controls.addEventListener('unlock', this.onCameraUnlock.bind(this));
+        // this.controls.addEventListener('lock', this.onCameraLock.bind(this));
+        // this.controls.addEventListener('unlock', this.onCameraUnlock.bind(this));
 
         // Set up keyboard and mouse input listeners
         document.addEventListener('keyup', this.onKeyUp.bind(this));
         document.addEventListener('keydown', this.onKeyDown.bind(this));
         document.addEventListener('mousedown', this.onMouseDown.bind(this));
         document.addEventListener('wheel', this.onMouseWheel.bind(this), { passive: false });
+
+        // Register listener on document
+        document.addEventListener('game:menu:start:new', this.onCameraLock.bind(this));
     }
 
     /**
@@ -89,18 +101,53 @@ export class ControllsPlayerBase extends PlayerBase {
 
     /**
      * Called when pointer lock is activated (game starts)
-     * Delegates to PointerLockHandler
+     * Delegates to PointerLockHandler and dispatches event
      */
     onCameraLock() {
+        // Lock pointer on any key press if not already locked
+        if (!this.controls.isLocked) {
+            this.debugCamera = false;
+            this.controls.lock();
+        }
         this.pointerLockHandler.handleLock();
+        
+        // Dispatch game:controls:lock event
+        const event = new CustomEvent('game:controls:lock', {
+            detail: { 
+                timestamp: Date.now(),
+                locked: true
+            },
+            bubbles: true,
+            cancelable: true
+        });
+        document.dispatchEvent(event);
+
+        if (this.debugControls) {
+            console.log('[Controls] Dispatched game:controls:lock event');
+        }
     }
     
     /**
      * Called when pointer lock is released (ESC pressed)
-     * Delegates to PointerLockHandler
+     * Delegates to PointerLockHandler and dispatches event
      */
     onCameraUnlock() {
         this.pointerLockHandler.handleUnlock();
+        
+        // Dispatch game:controls:unlock event
+        const event = new CustomEvent('game:controls:unlock', {
+            detail: { 
+                timestamp: Date.now(),
+                locked: false
+            },
+            bubbles: true,
+            cancelable: true
+        });
+        document.dispatchEvent(event);
+        
+        if (this.debugControls) {
+            console.log('[Controls] Dispatched game:controls:unlock event');
+        }
     }
 
     /**

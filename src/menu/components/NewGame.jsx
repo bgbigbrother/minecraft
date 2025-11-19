@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, TextField, Button, Alert } from '@mui/material';
 import MenuLayout from './MenuLayout.jsx';
@@ -67,8 +67,17 @@ const NewGame = memo(() => {
 
     const trimmedName = worldName.trim();
 
-    // TODO: Implement game start logic
-    console.log('Starting new game:', trimmedName);
+    // Dispatch menu:newgame:start event with world configuration
+    const gameStartEvent = new CustomEvent('game:menu:start:new', {
+      detail: {
+        worldName: trimmedName
+      },
+      bubbles: true,
+      cancelable: true
+    });
+    
+    document.dispatchEvent(gameStartEvent);
+    
   };
 
   return (
