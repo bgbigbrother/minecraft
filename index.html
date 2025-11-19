@@ -7,9 +7,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Minecraft.js</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./src/menu/menu.css">
 </head>
 
 <body>
+  <div id="menu-root"></div>
   <div id="app"></div>
   <div id="health-bar-container">
     <div id="health-bar-background">
@@ -49,6 +51,7 @@
     </div>
   </div>
   <div id="status"></div>
+  <script type="module" src="./src/menu/main.jsx"></script>
   <script type="module" src="./scripts/main.js"></script>
   <audio id="theme-music">
     <source src="assets/theme.mp3" type="audio/mpeg">

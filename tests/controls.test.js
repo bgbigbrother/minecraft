@@ -11,11 +11,26 @@ jest.mock('../scripts/textures/blocks.js', () => ({
   }
 }));
 
+// Mock the event bus
+jest.mock('../src/menu/utils/eventBus.js');
+
+import eventBus from '../src/menu/utils/eventBus.js';
+
+// Set up event bus mocks after import
+eventBus.emit = jest.fn();
+eventBus.on = jest.fn();
+eventBus.off = jest.fn();
+
 describe('ControllsPlayerBase', () => {
   let player;
   let mockWorld;
 
   beforeEach(() => {
+    // Clear event bus mock
+    eventBus.emit.mockClear();
+    eventBus.on.mockClear();
+    eventBus.off.mockClear();
+    
     // Mock DOM elements
     document.body.innerHTML = `
       <div id="overlay" style="visibility: visible;"></div>
@@ -118,35 +133,34 @@ describe('ControllsPlayerBase', () => {
   });
 
   describe('onCameraLock', () => {
-    test('should hide overlay when camera is locked', () => {
-      const overlay = document.getElementById('overlay');
-      overlay.style.visibility = 'visible';
-      
+    test('should emit pointer lock event when camera is locked', () => {
       player.onCameraLock();
       
-      expect(overlay.style.visibility).toBe('hidden');
+      expect(eventBus.emit).toHaveBeenCalledWith('menu:pointerlock:change:state', {
+        locked: true
+      });
     });
   });
 
   describe('onCameraUnlock', () => {
-    test('should show overlay when camera is unlocked and not in debug mode', () => {
-      const overlay = document.getElementById('overlay');
-      overlay.style.visibility = 'hidden';
+    test('should emit pointer lock event when camera is unlocked', () => {
       player.debugCamera = false;
       
       player.onCameraUnlock();
       
-      expect(overlay.style.visibility).toBe('visible');
+      expect(eventBus.emit).toHaveBeenCalledWith('menu:pointerlock:change:state', {
+        locked: false
+      });
     });
 
-    test('should not show overlay when in debug camera mode', () => {
-      const overlay = document.getElementById('overlay');
-      overlay.style.visibility = 'hidden';
+    test('should emit pointer lock event even in debug camera mode', () => {
       player.debugCamera = true;
       
       player.onCameraUnlock();
       
-      expect(overlay.style.visibility).toBe('hidden');
+      expect(eventBus.emit).toHaveBeenCalledWith('menu:pointerlock:change:state', {
+        locked: false
+      });
     });
   });
 

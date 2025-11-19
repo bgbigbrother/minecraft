@@ -1,0 +1,61 @@
+{
+  "menu": {
+    "title": "MINECRAFT.JS",
+    "newGame": "New Game",
+    "loadGame": "Load Game",
+    "controls": "Controls",
+    "options": "Options",
+    "back": "Back"
+  },
+  "newGame": {
+    "title": "Create New World",
+    "worldName": "World Name",
+    "worldNamePlaceholder": "Enter world name...",
+    "create": "Create World",
+    "errorEmpty": "World name cannot be empty"
+  },
+  "loadGame": {
+    "title": "Load Game",
+    "noSaves": "No saved games found",
+    "lastPlayed": "Last played: {timestamp}",
+    "selectWorld": "Select a world to load"
+  },
+  "controls": {
+    "title": "Controls",
+    "movement": {
+      "title": "Movement",
+      "forward": "W - Move Forward",
+      "backward": "S - Move Backward",
+      "left": "A - Move Left",
+      "right": "D - Move Right",
+      "sprint": "Shift - Sprint",
+      "jump": "Space - Jump"
+    },
+    "camera": {
+      "title": "Camera",
+      "look": "Mouse - Look Around",
+      "reset": "R - Reset Camera"
+    },
+    "interaction": {
+      "title": "Interaction",
+      "break": "Left Click - Break Block",
+      "place": "Right Click - Place Block",
+      "pickaxe": "0 - Select Pickaxe",
+      "blocks": "1-8 - Select Block"
+    },
+    "system": {
+      "title": "System",
+      "save": "F1 - Save Game",
+      "load": "F2 - Load Game",
+      "toggleUI": "U - Toggle Debug UI",
+      "debugCamera": "F10 - Debug Camera"
+    }
+  },
+  "options": {
+    "title": "Options",
+    "musicVolume": "Music Volume",
+    "showFPS": "Show FPS Counter",
+    "apply": "Apply",
+    "reset": "Reset to Defaults"
+  }
+}

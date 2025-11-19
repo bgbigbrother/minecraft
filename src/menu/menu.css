@@ -1,0 +1,203 @@
+/* Menu Overlay Root Container */
+#menu-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  pointer-events: none; /* Allow clicks through to canvas when hidden */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Enable pointer events when overlay is visible */
+#menu-root.visible {
+  pointer-events: auto;
+}
+
+/* Menu Container - Always clickable */
+.menu-container {
+  pointer-events: auto;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: rgba(60, 60, 60, 0.95);
+  border: 4px solid #000;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+  padding: 24px;
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Slide-in animation for menu container */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Menu Background Overlay */
+.menu-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: -1;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Menu Title */
+.menu-title {
+  font-family: 'Minecraft', monospace;
+  font-size: 2.5rem;
+  text-align: center;
+  color: #fff;
+  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.8);
+  margin-bottom: 32px;
+  letter-spacing: 2px;
+}
+
+/* Menu Content */
+.menu-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .menu-container {
+    width: 95%;
+    max-width: none;
+    padding: 16px;
+  }
+
+  .menu-title {
+    font-size: 2rem;
+    margin-bottom: 24px;
+    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.8);
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-container {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 2px solid #000;
+    box-shadow: none;
+    padding: 12px;
+  }
+
+  .menu-title {
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+  }
+
+  .menu-content {
+    gap: 12px;
+  }
+}
+
+/* High DPI / Retina Display Support */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .menu-title,
+  .menu-container {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Font Loading Optimization */
+@font-face {
+  font-family: 'Minecraft';
+  src: url('/fonts/Minecraft.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap; /* Ensure text remains visible during font load */
+}
+
+/* Ensure all text uses Minecraft font with proper fallbacks */
+#menu-root,
+#menu-root * {
+  font-family: 'Minecraft', 'Press Start 2P', 'Courier New', monospace;
+}
+
+/* Loading indicator for menu */
+.menu-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #FFFFFF;
+  font-size: 1.2rem;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  #menu-root,
+  .menu-container,
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Ensure Three.js canvas is not affected */
+#app {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+
+/* Performance optimization - GPU acceleration */
+#menu-root,
+.menu-container {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Custom scrollbar for menu container */
+.menu-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.menu-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.menu-container::-webkit-scrollbar-thumb {
+  background: rgba(139, 139, 139, 0.8);
+  border: 1px solid #000;
+}
+
+.menu-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 139, 139, 1);
+}
