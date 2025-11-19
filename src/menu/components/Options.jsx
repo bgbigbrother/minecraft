@@ -42,7 +42,7 @@ const Options = memo(() => {
 
   /**
    * Handle setting change
-   * Updates local state, calls game bridge, and persists to localStorage
+   * Updates local state and persists to localStorage
    */
   const handleSettingChange = (key, value) => {
     // Update local state
@@ -51,13 +51,6 @@ const Options = memo(() => {
       [key]: value,
     };
     setSettings(newSettings);
-
-    // Call game bridge to update setting
-    if (window.gameBridge && window.gameBridge.updateSetting) {
-      window.gameBridge.updateSetting(key, value);
-    } else {
-      console.warn('Game bridge not initialized, setting will be applied on next game start');
-    }
 
     // Persist to localStorage
     try {

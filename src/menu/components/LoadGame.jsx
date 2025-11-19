@@ -66,22 +66,12 @@ const LoadGame = memo(() => {
 
   /**
    * Handle world selection
-   * Calls game bridge to load world data and requests pointer lock
+   * Loads the selected world
    * @param {Object} worldData - The selected world data
    */
   const handleWorldSelect = (worldData) => {
-    // Call game bridge to load the selected world
-    if (window.gameBridge && window.gameBridge.loadGame) {
-      window.gameBridge.loadGame(worldData);
-      
-      // Request pointer lock to start the game
-      if (window.gameBridge.requestPointerLock) {
-        window.gameBridge.requestPointerLock();
-      }
-    } else {
-      console.error('Game bridge not initialized');
-      alert('Game system not ready. Please refresh the page.');
-    }
+    // TODO: Implement game load logic
+    console.log('Loading world:', worldData);
   };
 
   /**

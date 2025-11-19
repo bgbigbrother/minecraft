@@ -55,7 +55,7 @@ const NewGame = memo(() => {
 
   /**
    * Handle form submission
-   * Validates input, calls game bridge to start new game, and requests pointer lock
+   * Validates input and creates new game
    */
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -67,18 +67,8 @@ const NewGame = memo(() => {
 
     const trimmedName = worldName.trim();
 
-    // Call game bridge to start new game
-    if (window.gameBridge && window.gameBridge.startNewGame) {
-      window.gameBridge.startNewGame(trimmedName);
-      
-      // Request pointer lock to start the game
-      if (window.gameBridge.requestPointerLock) {
-        window.gameBridge.requestPointerLock();
-      }
-    } else {
-      console.error('Game bridge not initialized');
-      setError('Game system not ready. Please refresh the page.');
-    }
+    // TODO: Implement game start logic
+    console.log('Starting new game:', trimmedName);
   };
 
   return (
