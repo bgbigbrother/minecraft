@@ -45,7 +45,6 @@ const GameRunning = memo(() => {
   // Load world name and listen for world data
   useEffect(() => {
     const getWorldData = (event) => {
-      console.log(event);
       // Extract world name from params if available
       const name = event.detail.params?.worldName || event.detail.name || 'Current World';
       
@@ -81,7 +80,6 @@ const GameRunning = memo(() => {
           data: worldData.data,
           player: worldData.player
         });
-        console.log(`World "${worldName}" saved successfully`);
       }
 
       // Dispatch save event to notify game

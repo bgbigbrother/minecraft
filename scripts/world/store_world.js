@@ -42,6 +42,7 @@ export class StoreWorldBaseClass extends WorldBaseClass {
                 // Load world generation parameters (legacy support)
                 this.params = event.detail.params;
                 this.dataStore.data = event.detail.data;
+                this.name = event.detail.name;
                 
                 // Show load confirmation message
                 document.getElementById('status').innerHTML = 'GAME LOADED';
