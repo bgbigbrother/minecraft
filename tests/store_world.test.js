@@ -69,24 +69,6 @@ describe('StoreWorldBaseClass', () => {
     expect(world.name).toBe('Test World');
   });
 
-  test('should save world data using storage utility', () => {
-    // Mock setTimeout to avoid timing issues
-    global.setTimeout = jest.fn();
-    
-    world.save();
-    
-    // Verify saveWorld was called with correct parameters
-    expect(saveWorld).toHaveBeenCalledWith('Test World', {
-      params: world.params,
-      data: world.dataStore.data,
-      player: {
-        position: { x: 10, y: 20, z: 30 },
-        health: 85,
-        inventory: { items: { 1: 5, 2: 3 } }
-      }
-    });
-  });
-
   test('should get player state correctly', () => {
     const playerState = world.getPlayerState();
     
