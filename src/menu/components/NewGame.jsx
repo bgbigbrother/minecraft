@@ -1,8 +1,9 @@
-import React, { useState, useEffect, memo } from 'react';
+import { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, TextField, Button, Alert } from '@mui/material';
 import MenuLayout from './MenuLayout.jsx';
 import { useLocalization } from '../hooks/useLocalization.js';
+import { saveWorld } from '../utils/storage.js';
 
 /**
  * NewGame Component
@@ -77,6 +78,8 @@ const NewGame = memo(() => {
     });
     
     document.dispatchEvent(gameStartEvent);
+
+    saveWorld(worldName, {});
     
     // Navigate to game route
     navigate('/game');

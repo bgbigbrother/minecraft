@@ -53,6 +53,9 @@ export class ControllsPlayerBase extends PlayerBase {
         // Register listener on document
         document.removeEventListener('game:menu:start:new', this.onCameraLock);
         document.addEventListener('game:menu:start:new', this.onCameraLock);
+        
+        document.removeEventListener('game:menu:resume', this.onCameraLock);
+        document.addEventListener('game:menu:resume', this.onCameraLock);
     }
 
     /**
@@ -107,14 +110,8 @@ export class ControllsPlayerBase extends PlayerBase {
      * Called when pointer lock is activated (game starts)
      * Delegates to PointerLockHandler and dispatches event
      */
-    onCameraLock = () => {
-        // Lock pointer on any key press if not already locked
-        if (!this.controls.isLocked) {
-            this.debugCamera = false;
-            this.controls.lock();
-        }
-        this.pointerLockHandler.handleLock();
-        
+    onCameraLock = (e) => {
+        this.lockCamera();
         // Dispatch game:controls:lock event
         const event = new CustomEvent('game:controls:lock', {
             detail: { 
@@ -130,6 +127,18 @@ export class ControllsPlayerBase extends PlayerBase {
             console.log('[Controls] Dispatched game:controls:lock event');
         }
     }
+
+    lockCamera = () => {
+        // Lock pointer if not already locked
+        if (!this.controls.isLocked) {
+            this.debugCamera = false;
+            // The lock() method triggers requestPointerLock which returns a Promise
+            // We don't await it, but the browser will handle the async request
+            // Errors are caught by the global pointerlockerror event
+            this.controls.lock();
+        }
+        this.pointerLockHandler.handleLock();
+    }
     
     /**
      * Called when pointer lock is released (ESC pressed)
@@ -142,7 +151,10 @@ export class ControllsPlayerBase extends PlayerBase {
         const event = new CustomEvent('game:controls:unlock', {
             detail: { 
                 timestamp: Date.now(),
-                locked: false
+                locked: false,
+                params: this.world.params,
+                data: this.world.dataStore.data,
+                player: this.world.getPlayerState()
             },
             bubbles: true,
             cancelable: true

@@ -1,6 +1,6 @@
 import { WorldBaseClass } from './base';
 import { DataStore } from './world_store';
-import { saveWorld } from '../../src/menu/utils/storage.js';
+// import { saveWorld } from '../../src/menu/utils/storage.js';
 
 /**
  * Extends world with save/load functionality
@@ -29,7 +29,7 @@ export class StoreWorldBaseClass extends WorldBaseClass {
         document.addEventListener('keydown', (ev) => {
             switch (ev.code) {
               case 'F1':
-                this.save(); // Save game
+                //this.save(); // Save game
                 break;
               case 'F2':
                 this.load(); // Load game
@@ -42,7 +42,7 @@ export class StoreWorldBaseClass extends WorldBaseClass {
      * Saves the world data to browser's localStorage
      * Stores world generation parameters, modified block data, and player state
      */
-    save() {
+    /*save() {
         try {
             // Prepare world data structure
             const worldData = {
@@ -62,7 +62,7 @@ export class StoreWorldBaseClass extends WorldBaseClass {
             document.getElementById('status').innerHTML = 'SAVE FAILED: ' + error.message;
             setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
         }
-    }
+    }*/
 
     /**
      * Loads the world data from browser's localStorage

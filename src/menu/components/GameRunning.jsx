@@ -1,7 +1,9 @@
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Box, Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import MenuLayout from './MenuLayout.jsx';
 import { useLocalization } from '../hooks/useLocalization.js';
+import { saveWorld } from '../utils/storage.js';
 
 /**
  * GameRunning Component
@@ -13,7 +15,50 @@ import { useLocalization } from '../hooks/useLocalization.js';
  */
 const GameRunning = memo(() => {
   const { strings } = useLocalization();
+  const navigate = useNavigate();
+  let worldData = {
+    timestamp: null,
+    locked: null,
+    params: {},
+    data: {},
+    player: {}
+  }
 
+  // Form state
+  const [worldName, setWorldName] = useState('');
+
+  /**
+   * Handle back button click - return to game
+   */
+  const handleBack = () => {
+    const resumeEvent = new CustomEvent('game:menu:resume', {
+      detail: { 
+        timestamp: Date.now()
+      },
+      bubbles: true,
+      cancelable: true
+    });
+    document.dispatchEvent(resumeEvent);
+    navigate('/game')
+  };
+
+  // Load world name and listen for world data
+  useEffect(() => {
+    document.addEventListener("game:controls:unlock", getWorldData);
+    
+    return () => {
+      document.removeEventListener("game:controls:unlock", getWorldData);
+    };
+  }, []);
+
+  const getWorldData = (event) => {
+    event.preventDefault();
+    worldData.timestamp = event.detail.timestamp || null;
+    worldData.locked = event.detail.locked || null;
+    worldData.params = event.detail.params || {};
+    worldData.data = event.detail.data || {};
+    worldData.player = event.detail.player || {};
+  }
 
   /**
    * Handle form submission
@@ -22,21 +67,22 @@ const GameRunning = memo(() => {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    // const gameStartEvent = new CustomEvent('game:menu:start:new', {
-    //   detail: {
-    //     worldName: trimmedName
-    //   },
-    //   bubbles: true,
-    //   cancelable: true
-    // });
+    const gameStartEvent = new CustomEvent('game:menu:save', {
+      detail: {
+        
+      },
+      bubbles: true,
+      cancelable: true
+    });
     
-    // document.dispatchEvent(gameStartEvent);
+    document.dispatchEvent(gameStartEvent);
     
   };
 
   return (
     <MenuLayout
       title={strings.gameRunning?.title || 'Game Menu'}
+      onBack={handleBack}
     >
       <Box
         component="form"
