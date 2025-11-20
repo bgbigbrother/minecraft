@@ -184,8 +184,8 @@ export class PlayerBase {
      * @param {Number} dt - Delta time in seconds since last frame
      */
     updateHealthRegeneration(dt) {
-        // Only regenerate if health is below maximum and controls are active
-        if (this.health < this.maxHealth && this.controls.isLocked) {
+        // Only regenerate if health is below maximum, above zero, and controls are active
+        if (this.health > 0 && this.health < this.maxHealth && this.controls.isLocked) {
             // Calculate regeneration amount
             // healthRegenRate is % per minute, dt is in seconds
             // Convert: (rate / 60) * dt gives regeneration per frame

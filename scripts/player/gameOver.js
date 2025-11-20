@@ -56,7 +56,6 @@ export class GameOverSystem {
         
         // Unlock controls and show initial menu
         this.player.controls.unlock();
-        document.getElementById('overlay').style.visibility = 'visible';
         
         // Reset flag to allow future deaths
         this.isDead = false;
