@@ -104,13 +104,16 @@ export class PlayerBase {
         
         // Initialize health bar UI
         setTimeout(() => this.updateHealthBar(), 0);
+
+        document.removeEventListener('game:controls:lock', this.initializeFallDamage);
+        document.addEventListener('game:controls:lock', this.initializeFallDamage);
     }
 
     /**
      * Initializes fall damage tracking system
      * Sets initial fall state (gameStartTime will be set on first pointer lock)
      */
-    initializeFallDamage() {
+    initializeFallDamage = () => {
         this.gameStartTime = null;
         this.fallStartY = null;
         this.isFalling = false;
