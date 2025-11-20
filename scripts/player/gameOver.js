@@ -20,6 +20,9 @@ export class GameOverSystem {
         
         // Flag to prevent multiple death triggers for a single death event
         this.isDead = false;
+
+        document.removeEventListener('game:menu:start:new', this.resetPlayerState);
+        document.addEventListener('game:menu:start:new', this.resetPlayerState);
     }
 
     /**
@@ -90,7 +93,7 @@ export class GameOverSystem {
      * Resets player state after death
      * Clears inventory, resets position, velocity, health, and fall damage tracking
      */
-    resetPlayerState() {
+    resetPlayerState = () => {
         // Clear inventory and persist empty state
         this.player.inventory.clear();
         this.player.inventory.save();

@@ -122,25 +122,31 @@ export class StoreWorldBaseClass extends WorldBaseClass {
         if (!this.player) {
             return;
         }
+
+        // Create one-time listener for world loaded event
+        const onWorldLoaded = () => {
+            // Restore position
+            if (playerData.position) {
+                this.player.position.set(
+                    playerData.position.x,
+                    playerData.position.y,
+                    playerData.position.z
+                );
+            }
+            
+            // Restore health
+            if (typeof playerData.health === 'number') {
+                this.player.setHealth(playerData.health);
+            }
+            
+            // Restore inventory
+            if (playerData.inventory && this.player.inventory) {
+                this.player.inventory.fromJSON(playerData.inventory);
+                this.player.inventory.save(); // Persist to localStorage
+            }
+            document.removeEventListener('game:engine:world:loaded', onWorldLoaded);
+        };
         
-        // Restore position
-        if (playerData.position) {
-            this.player.position.set(
-                playerData.position.x,
-                playerData.position.y,
-                playerData.position.z
-            );
-        }
-        
-        // Restore health
-        if (typeof playerData.health === 'number') {
-            this.player.setHealth(playerData.health);
-        }
-        
-        // Restore inventory
-        if (playerData.inventory && this.player.inventory) {
-            this.player.inventory.fromJSON(playerData.inventory);
-            this.player.inventory.save(); // Persist to localStorage
-        }
+        document.addEventListener('game:engine:world:loaded', onWorldLoaded);
     }
 }

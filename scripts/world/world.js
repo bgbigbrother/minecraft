@@ -65,13 +65,19 @@ export class World extends EditChunkStoreWorldBaseClass {
         this.dataStore && this.dataStore.clear();
     }
 
-    this.disposeChunks();
+    this.reset();
 
     for (let x = -this.drawDistance; x <= this.drawDistance; x++) {
       for (let z = -this.drawDistance; z <= this.drawDistance; z++) {
         this.generateChunk(x, z);
       }
     }
+
+    // Dispatch custom event to notify that the world has been loaded
+    document.dispatchEvent(new CustomEvent('game:engine:world:loaded', { 
+      bubbles: true,
+      cancelable: true
+    }));
   }
 
   /**
