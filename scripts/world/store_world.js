@@ -119,12 +119,11 @@ export class StoreWorldBaseClass extends WorldBaseClass {
      * @param {Object} playerData - Player state data
      */
     restorePlayerState(playerData) {
-        if (!this.player) {
-            return;
-        }
-
         // Create one-time listener for world loaded event
         const onWorldLoaded = () => {
+            if (!this.player) {
+                return;
+            }
             // Restore position
             if (playerData.position) {
                 this.player.position.set(

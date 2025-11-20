@@ -6,7 +6,7 @@ import { blocks } from '../textures/blocks';
 export class World extends EditChunkStoreWorldBaseClass {
   constructor(models) {
     super(models);
-    
+    this.worldLoadedEventDispatched = false;
     // Array to track all dropped items in the world
     this.droppedItems = [];
     
@@ -72,12 +72,6 @@ export class World extends EditChunkStoreWorldBaseClass {
         this.generateChunk(x, z);
       }
     }
-
-    // Dispatch custom event to notify that the world has been loaded
-    document.dispatchEvent(new CustomEvent('game:engine:world:loaded', { 
-      bubbles: true,
-      cancelable: true
-    }));
   }
 
   /**
@@ -99,6 +93,15 @@ export class World extends EditChunkStoreWorldBaseClass {
     });
 
     this.player = player;
+
+    // Dispatch event after player is set for the first time
+    if (!this.worldLoadedEventDispatched && player) {
+      this.worldLoadedEventDispatched = true;
+      document.dispatchEvent(new CustomEvent('game:engine:world:loaded', {
+        bubbles: true,
+        cancelable: true
+      }));
+    }
   }
 
   /**
