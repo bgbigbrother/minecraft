@@ -1,6 +1,6 @@
 import { WorldBaseClass } from './base';
 import { DataStore } from './world_store';
-// import { saveWorld } from '../../src/menu/utils/storage.js';
+import settings from './config';
 
 /**
  * Extends world with save/load functionality
@@ -25,9 +25,40 @@ export class StoreWorldBaseClass extends WorldBaseClass {
     constructor() {
         super();
         
-        // Set up keyboard shortcuts for save/load
+        // Handle load world
         document.removeEventListener('game:menu:load', this.load);
         document.addEventListener('game:menu:load', this.load);
+
+        // Handle reset of the world
+        document.removeEventListener('game:menu:save', this.reset);
+        document.addEventListener('game:menu:save', this.reset);
+    }
+
+    /**
+     * Resets the world by clearing all chunks and data
+     * Call this before loading a new world to ensure clean state
+     */
+    reset = () => {
+        // Clear all rendered chunks from the scene
+        this.disposeChunks();
+        
+        // Clear the data store (modified blocks)
+        if (this.dataStore) {
+            this.dataStore.clear();
+        }
+        
+        // Clear dropped items if they exist
+        if (this.droppedItems) {
+            this.droppedItems.forEach(item => {
+                if (item.mesh) {
+                    this.remove(item.mesh);
+                }
+            });
+            this.droppedItems = [];
+        }
+        
+        // Reset to default world parameters
+        this.params = settings
     }
 
     /**
@@ -39,25 +70,23 @@ export class StoreWorldBaseClass extends WorldBaseClass {
     load = (event) => {
         try {
             if (event.detail.params && event.detail.data) {
+                // Reset the world before loading
+                this.reset();
+                
                 // Load world generation parameters (legacy support)
                 this.params = event.detail.params;
                 this.dataStore.data = event.detail.data;
                 this.name = event.detail.name;
-                
-                // Show load confirmation message
-                document.getElementById('status').innerHTML = 'GAME LOADED';
-                setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
+                this.restorePlayerState(event.detail.player);
                 
                 // Regenerate world with loaded data
                 this.generate();
             } else {
-                document.getElementById('status').innerHTML = 'NO SAVE DATA FOUND';
-                setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
+                console.error(`Wrong world data provided: ${event.detail}`)
             }
         } catch (error) {
             console.error('Failed to load world:', error);
-            document.getElementById('status').innerHTML = 'LOAD FAILED';
-            setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
+            
         }
     }
     
@@ -76,47 +105,13 @@ export class StoreWorldBaseClass extends WorldBaseClass {
         
         return {
             position: {
-                x: this.player.position.x,
-                y: this.player.position.y,
-                z: this.player.position.z
+                x: parseInt(this.player.position.x),
+                y: 32,
+                z: parseInt(this.player.position.z)
             },
             health: this.player.health,
             inventory: this.player.inventory ? this.player.inventory.toJSON() : {}
         };
-    }
-    
-    /**
-     * Loads world from provided world data (used by menu system)
-     * @param {Object} worldData - World data object from storage
-     */
-    loadFromData(worldData) {
-        try {
-            // Restore world generation parameters
-            if (worldData.params) {
-                this.params = worldData.params;
-            }
-            
-            // Restore modified chunk data
-            if (worldData.data) {
-                this.dataStore.data = worldData.data;
-            }
-            
-            // Restore player state
-            if (worldData.player && this.player) {
-                this.restorePlayerState(worldData.player);
-            }
-            
-            // Regenerate world with loaded data
-            this.generate();
-            
-            // Show load confirmation message
-            document.getElementById('status').innerHTML = 'WORLD LOADED';
-            setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
-        } catch (error) {
-            console.error('Failed to load world from data:', error);
-            document.getElementById('status').innerHTML = 'LOAD FAILED';
-            setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
-        }
     }
     
     /**

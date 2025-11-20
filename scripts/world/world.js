@@ -91,6 +91,8 @@ export class World extends EditChunkStoreWorldBaseClass {
     this.children.forEach(child => {
       child.name === "Chunk" && child.update(dt, this)
     });
+
+    this.player = player;
   }
 
   /**
