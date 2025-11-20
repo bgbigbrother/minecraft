@@ -8,24 +8,24 @@ import { saveWorld } from '../utils/storage.js';
 /**
  * GameRunning Component
  * 
- * Provides a form for creating a new game world with a custom name.
- * Validates input, calls game bridge to start new game, and requests pointer lock.
+ * Provides in-game menu with save functionality.
+ * Listens for world data from game and saves to localStorage.
  * 
- * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5
+ * Requirements: 11.2, 11.3, 11.4
  */
 const GameRunning = memo(() => {
   const { strings } = useLocalization();
   const navigate = useNavigate();
-  let worldData = {
+
+  // World state
+  const [worldName, setWorldName] = useState('');
+  const [worldData, setWorldData] = useState({
     timestamp: null,
     locked: null,
     params: {},
     data: {},
     player: {}
-  }
-
-  // Form state
-  const [worldName, setWorldName] = useState('');
+  });
 
   /**
    * Handle back button click - return to game
@@ -44,6 +44,21 @@ const GameRunning = memo(() => {
 
   // Load world name and listen for world data
   useEffect(() => {
+    const getWorldData = (event) => {
+      console.log(event);
+      // Extract world name from params if available
+      const name = event.detail.params?.worldName || event.detail.name || 'Current World';
+      
+      setWorldName(name);
+      setWorldData({
+        timestamp: event.detail.timestamp || Date.now(),
+        locked: event.detail.locked || false,
+        params: event.detail.params || {},
+        data: event.detail.data || {},
+        player: event.detail.player || {}
+      });
+    };
+
     document.addEventListener("game:controls:unlock", getWorldData);
     
     return () => {
@@ -51,32 +66,42 @@ const GameRunning = memo(() => {
     };
   }, []);
 
-  const getWorldData = (event) => {
-    event.preventDefault();
-    worldData.timestamp = event.detail.timestamp || null;
-    worldData.locked = event.detail.locked || null;
-    worldData.params = event.detail.params || {};
-    worldData.data = event.detail.data || {};
-    worldData.player = event.detail.player || {};
-  }
-
   /**
-   * Handle form submission
-   * Validates input and creates new game
+   * Handle save button click
+   * Saves world data to localStorage and dispatches save event
    */
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const gameStartEvent = new CustomEvent('game:menu:save', {
-      detail: {
-        
-      },
-      bubbles: true,
-      cancelable: true
-    });
-    
-    document.dispatchEvent(gameStartEvent);
-    
+    try {
+      // Save world data to localStorage
+      if (worldName) {
+        saveWorld(worldName, {
+          params: worldData.params,
+          data: worldData.data,
+          player: worldData.player
+        });
+        console.log(`World "${worldName}" saved successfully`);
+      }
+
+      // Dispatch save event to notify game
+      const gameSaveEvent = new CustomEvent('game:menu:save', {
+        detail: {
+          worldName: worldName,
+          timestamp: Date.now()
+        },
+        bubbles: true,
+        cancelable: true
+      });
+      
+      document.dispatchEvent(gameSaveEvent);
+      
+      // Navigate back to main menu
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to save world:', error);
+      // Could add error state here to show user-friendly message
+    }
   };
 
   return (

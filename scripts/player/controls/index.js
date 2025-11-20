@@ -111,6 +111,7 @@ export class ControllsPlayerBase extends PlayerBase {
      * Delegates to PointerLockHandler and dispatches event
      */
     onCameraLock = (e) => {
+        this.world.name = e.detail.worldName || this.world.name ;
         this.lockCamera();
         // Dispatch game:controls:lock event
         const event = new CustomEvent('game:controls:lock', {
@@ -152,6 +153,7 @@ export class ControllsPlayerBase extends PlayerBase {
             detail: { 
                 timestamp: Date.now(),
                 locked: false,
+                name: this.world.name,
                 params: this.world.params,
                 data: this.world.dataStore.data,
                 player: this.world.getPlayerState()

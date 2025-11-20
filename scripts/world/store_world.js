@@ -26,43 +26,9 @@ export class StoreWorldBaseClass extends WorldBaseClass {
         super();
         
         // Set up keyboard shortcuts for save/load
-        document.addEventListener('keydown', (ev) => {
-            switch (ev.code) {
-              case 'F1':
-                //this.save(); // Save game
-                break;
-              case 'F2':
-                this.load(); // Load game
-                break;
-            }
-        });
+        document.removeEventListener('game:menu:load', this.load);
+        document.addEventListener('game:menu:load', this.load);
     }
-
-    /**
-     * Saves the world data to browser's localStorage
-     * Stores world generation parameters, modified block data, and player state
-     */
-    /*save() {
-        try {
-            // Prepare world data structure
-            const worldData = {
-                params: this.params,
-                data: this.dataStore.data,
-                player: this.getPlayerState()
-            };
-            
-            // Save using storage utility
-            saveWorld(this.name, worldData);
-            
-            // Show save confirmation message
-            document.getElementById('status').innerHTML = 'GAME SAVED';
-            setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
-        } catch (error) {
-            console.error('Failed to save world:', error);
-            document.getElementById('status').innerHTML = 'SAVE FAILED: ' + error.message;
-            setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
-        }
-    }*/
 
     /**
      * Loads the world data from browser's localStorage
@@ -70,15 +36,12 @@ export class StoreWorldBaseClass extends WorldBaseClass {
      * Note: This method maintains backward compatibility with F2 quick load
      * For menu-based loading, use loadFromData() instead
      */
-    load() {
+    load = (event) => {
         try {
-            // Load world generation parameters (legacy support)
-            const paramsJson = localStorage.getItem('minecraft_params');
-            const dataJson = localStorage.getItem('minecraft_data');
-            
-            if (paramsJson && dataJson) {
-                this.params = JSON.parse(paramsJson);
-                this.dataStore.data = JSON.parse(dataJson);
+            if (event.detail.params && event.detail.data) {
+                // Load world generation parameters (legacy support)
+                this.params = event.detail.params;
+                this.dataStore.data = event.detail.data;
                 
                 // Show load confirmation message
                 document.getElementById('status').innerHTML = 'GAME LOADED';

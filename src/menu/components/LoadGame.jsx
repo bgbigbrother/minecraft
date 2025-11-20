@@ -70,8 +70,14 @@ const LoadGame = memo(() => {
    * @param {Object} worldData - The selected world data
    */
   const handleWorldSelect = (worldData) => {
-    // TODO: Implement game load logic
-    console.log('Loading world:', worldData);
+    // Dispatch load event to notify game
+    const gameLoadEvent = new CustomEvent('game:menu:load', {
+      detail: worldData,
+      bubbles: true,
+      cancelable: true
+    });
+    
+    document.dispatchEvent(gameLoadEvent);
     
     // Navigate to game route
     navigate('/game');
