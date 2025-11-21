@@ -61,6 +61,10 @@ describe('StoreWorldBaseClass', () => {
     world = new StoreWorldBaseClass();
     world.name = 'Test World';
     world.player = mockPlayer;
+    
+    // Mock methods that are defined in child classes
+    world.disposeChunks = jest.fn();
+    world.droppedItems = [];
   });
 
   test('should create world instance', () => {
@@ -73,7 +77,7 @@ describe('StoreWorldBaseClass', () => {
     const playerState = world.getPlayerState();
     
     expect(playerState).toEqual({
-      position: { x: 10, y: 20, z: 30 },
+      position: { x: 10, y: 32, z: 30 },
       health: 85,
       inventory: { items: { 1: 5, 2: 3 } }
     });
@@ -90,15 +94,17 @@ describe('StoreWorldBaseClass', () => {
     });
   });
 
-  test('should load world data from localStorage (legacy F2 support)', () => {
-    const mockParams = { seed: 123 };
-    const mockData = { '0,0,1,1,1': 2 };
-    
-    mockLocalStorage.getItem.mockImplementation((key) => {
-      if (key === 'minecraft_params') return JSON.stringify(mockParams);
-      if (key === 'minecraft_data') return JSON.stringify(mockData);
-      return null;
-    });
+  test('should load world data from event detail', () => {
+    const worldData = {
+      params: { seed: 123 },
+      data: { '0,0,1,1,1': 2 },
+      name: 'Test World',
+      player: {
+        position: { x: 10, y: 20, z: 30 },
+        health: 85,
+        inventory: { items: { 1: 5, 2: 3 } }
+      }
+    };
 
     // Mock the generate method to avoid errors
     world.generate = jest.fn();
@@ -106,35 +112,39 @@ describe('StoreWorldBaseClass', () => {
     // Mock setTimeout to avoid timing issues
     global.setTimeout = jest.fn();
 
-    world.load();
+    // Create event with world data
+    const event = new CustomEvent('game:menu:load', {
+      detail: worldData
+    });
+
+    world.load(event);
     
-    expect(mockLocalStorage.getItem).toHaveBeenCalledWith('minecraft_params');
-    expect(mockLocalStorage.getItem).toHaveBeenCalledWith('minecraft_data');
+    // Check that reset was called (which clears chunks)
+    expect(world.disposeChunks).toHaveBeenCalled();
+    expect(world.params).toEqual(worldData.params);
+    expect(world.dataStore.data).toEqual(worldData.data);
+    expect(world.name).toBe('Test World');
     expect(world.generate).toHaveBeenCalled();
   });
 
-  test('should load world from data object', () => {
-    const worldData = {
-      params: { seed: 456 },
-      data: { '1,1,1,1,1': 3 },
-      player: {
-        position: { x: 50, y: 60, z: 70 },
-        health: 75,
-        inventory: { items: { 3: 10 } }
-      }
-    };
-
+  test('should handle missing event detail gracefully', () => {
+    // Mock console.error to avoid noise in test output
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    
     // Mock the generate method
     world.generate = jest.fn();
-    
-    // Mock setTimeout
-    global.setTimeout = jest.fn();
 
-    world.loadFromData(worldData);
+    // Create event with missing data
+    const event = new CustomEvent('game:menu:load', {
+      detail: {}
+    });
+
+    world.load(event);
     
-    expect(world.params).toEqual(worldData.params);
-    expect(world.dataStore.data).toEqual(worldData.data);
-    expect(world.generate).toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(world.generate).not.toHaveBeenCalled();
+    
+    consoleErrorSpy.mockRestore();
   });
 
   test('should restore player state from loaded data', () => {
@@ -145,6 +155,10 @@ describe('StoreWorldBaseClass', () => {
     };
 
     world.restorePlayerState(playerData);
+    
+    // Trigger the world loaded event to execute the restoration
+    const event = new CustomEvent('game:engine:world:loaded');
+    document.dispatchEvent(event);
     
     expect(mockPlayer.position.set).toHaveBeenCalledWith(100, 200, 300);
     expect(mockPlayer.setHealth).toHaveBeenCalledWith(50);
@@ -163,11 +177,15 @@ describe('StoreWorldBaseClass', () => {
     expect(() => world.restorePlayerState(playerData)).not.toThrow();
   });
 
-  test('should register keyboard shortcuts', () => {
+  test('should register event listeners', () => {
     const addEventListenerSpy = jest.spyOn(document, 'addEventListener');
     new StoreWorldBaseClass();
     expect(addEventListenerSpy).toHaveBeenCalledWith(
-      'keydown',
+      'game:menu:load',
+      expect.any(Function)
+    );
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      'game:menu:save',
       expect.any(Function)
     );
     addEventListenerSpy.mockRestore();

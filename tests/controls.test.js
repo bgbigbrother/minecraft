@@ -176,7 +176,13 @@ describe('ControllsPlayerBase', () => {
       player.controls.isLocked = false;
       player.debugCamera = true;
       const lockSpy = jest.spyOn(player.controls, 'lock');
-      player.onCameraLock();
+      
+      // Create event with worldName
+      const event = new CustomEvent('game:menu:start:new', {
+        detail: { worldName: 'Test World' }
+      });
+      
+      player.onCameraLock(event);
       expect(player.debugCamera).toBe(false);
       expect(lockSpy).toHaveBeenCalled();
     });

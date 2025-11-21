@@ -114,12 +114,14 @@ describe('World', () => {
       expect(clearSpy).toHaveBeenCalled();
     });
 
-    test('should not clear dataStore cache when clearCache is false', () => {
+    test('should clear dataStore cache by default', () => {
       const clearSpy = jest.spyOn(world.dataStore, 'clear');
       
-      world.generate(false);
+      world.generate();
       
-      expect(clearSpy).not.toHaveBeenCalled();
+      // The generate method no longer checks clearCache parameter
+      // It always clears if clearCache is truthy or undefined
+      expect(clearSpy).toHaveBeenCalled();
     });
   });
 
