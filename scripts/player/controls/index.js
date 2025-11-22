@@ -139,6 +139,12 @@ export class ControllsPlayerBase extends PlayerBase {
             this.controls.lock();
         }
         this.pointerLockHandler.handleLock();
+        
+        // Show crosshair when pointer is locked
+        const crosshair = document.getElementById('crosshair');
+        if (crosshair) {
+            crosshair.style.display = 'block';
+        }
     }
     
     /**
@@ -147,6 +153,12 @@ export class ControllsPlayerBase extends PlayerBase {
      */
     onCameraUnlock() {
         this.pointerLockHandler.handleUnlock();
+        
+        // Hide crosshair when pointer is unlocked
+        const crosshair = document.getElementById('crosshair');
+        if (crosshair) {
+            crosshair.style.display = 'none';
+        }
         
         // Dispatch game:controls:unlock event
         const event = new CustomEvent('game:controls:unlock', {
