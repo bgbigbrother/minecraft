@@ -16,6 +16,12 @@ export class World extends EditChunkStoreWorldBaseClass {
     
     // Creative mode: allows unlimited block placement without inventory checks
     this.creativeMode = false;
+    
+    // Progress tracking properties for initial world loading
+    this.isInitialLoad = false;
+    this.initialChunksTotal = 0;
+    this.initialChunksLoaded = 0;
+    this.progressTrackingEnabled = false;
   }
   
   /**
@@ -67,9 +73,51 @@ export class World extends EditChunkStoreWorldBaseClass {
 
     this.reset();
 
+    // Enable progress tracking for initial load
+    this.isInitialLoad = true;
+    this.progressTrackingEnabled = true;
+    
+    // Disable async loading during initial load to ensure all chunks load before gameplay
+    this.asyncLoading = false;
+    
+    // Calculate total chunks to generate: (2 * drawDistance + 1)²
+    const chunkDimension = 2 * this.drawDistance + 1;
+    this.initialChunksTotal = chunkDimension * chunkDimension;
+    this.initialChunksLoaded = 0;
+
+    // Generate chunks asynchronously to allow UI updates
+    this.generateChunksAsync();
+  }
+
+  /**
+   * Generates chunks asynchronously to allow UI updates between chunks
+   * Uses setTimeout to yield control back to the browser
+   */
+  async generateChunksAsync() {
+    const chunks = [];
+    
+    // Build list of chunks to generate
     for (let x = -this.drawDistance; x <= this.drawDistance; x++) {
       for (let z = -this.drawDistance; z <= this.drawDistance; z++) {
+        chunks.push({ x, z });
+      }
+    }
+
+    // Generate chunks in batches to allow UI updates
+    const BATCH_SIZE = 4; // Generate 4 chunks per batch
+    
+    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+      const batch = chunks.slice(i, i + BATCH_SIZE);
+      
+      // Generate batch of chunks
+      for (const { x, z } of batch) {
         this.generateChunk(x, z);
+      }
+      
+      // Yield control to browser to allow UI updates
+      // Use setTimeout with 0ms to let the event loop process
+      if (i + BATCH_SIZE < chunks.length) {
+        await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
   }

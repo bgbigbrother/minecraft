@@ -81,8 +81,8 @@ const NewGame = memo(() => {
 
     saveWorld(worldName, {});
     
-    // Navigate to game route
-    navigate('/game');
+    // Navigate to loading screen
+    navigate('/loading');
   };
 
   return (

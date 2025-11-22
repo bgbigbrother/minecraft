@@ -12,11 +12,11 @@ jest.mock('../scripts/biome/chunk.js', () => ({
       this.userData = {};
       this.loaded = true;
       this.name = "Chunk";
+      this.update = jest.fn();
     }
     generate() {
       this.loaded = true;
     }
-    update() {}
     disposeInstances() {
       this.disposed = true;
     }
@@ -69,55 +69,76 @@ describe('World', () => {
   });
 
   describe('generate', () => {
-    test('should generate chunks within draw distance', () => {
+    test('should generate chunks within draw distance', async () => {
       world.drawDistance = 1;
       world.generate();
+      
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       // With drawDistance = 1, should generate 3x3 = 9 chunks
       // (-1,-1), (-1,0), (-1,1), (0,-1), (0,0), (0,1), (1,-1), (1,0), (1,1)
       expect(world.children.length).toBe(9);
     });
 
-    test('should generate correct number of chunks for drawDistance = 0', () => {
+    test('should generate correct number of chunks for drawDistance = 0', async () => {
       world.drawDistance = 0;
       world.generate();
+      
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       // With drawDistance = 0, should generate 1x1 = 1 chunk at (0,0)
       expect(world.children.length).toBe(1);
     });
 
-    test('should generate correct number of chunks for drawDistance = 2', () => {
+    test('should generate correct number of chunks for drawDistance = 2', async () => {
       world.drawDistance = 2;
       world.generate();
+      
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       // With drawDistance = 2, should generate 5x5 = 25 chunks
       expect(world.children.length).toBe(25);
     });
 
-    test('should clear existing chunks before regenerating', () => {
+    test('should clear existing chunks before regenerating', async () => {
       world.drawDistance = 1;
       world.generate();
+      
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       const firstGenCount = world.children.length;
       
       world.generate();
       
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       // Should have same number of chunks, not doubled
       expect(world.children.length).toBe(firstGenCount);
     });
 
-    test('should clear dataStore cache when clearCache is true', () => {
+    test('should clear dataStore cache when clearCache is true', async () => {
       const clearSpy = jest.spyOn(world.dataStore, 'clear');
       
       world.generate(true);
       
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       expect(clearSpy).toHaveBeenCalled();
     });
 
-    test('should clear dataStore cache by default', () => {
+    test('should clear dataStore cache by default', async () => {
       const clearSpy = jest.spyOn(world.dataStore, 'clear');
       
       world.generate();
+      
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       // The generate method no longer checks clearCache parameter
       // It always clears if clearCache is truthy or undefined
@@ -128,21 +149,19 @@ describe('World', () => {
   describe('update', () => {
     let mockPlayer;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       mockPlayer = {
         position: { x: 0, y: 10, z: 0 }
       };
       world.drawDistance = 1;
       world.generate();
+      
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
     });
 
     test('should call update on all chunks', () => {
       const dt = 0.016; // ~60fps
-      
-      // Add update spy to chunks
-      world.children.forEach(chunk => {
-        chunk.update = jest.fn();
-      });
       
       world.update(dt, mockPlayer);
       
@@ -193,16 +212,19 @@ describe('World', () => {
 
   describe('getVisibleChunks', () => {
     let mockPlayer;
+    let testWorld;
 
     beforeEach(() => {
       mockPlayer = {
         position: { x: 0, y: 10, z: 0 }
       };
-      world.drawDistance = 1;
+      // Create a fresh world instance for these tests
+      testWorld = new World(mockModels);
+      testWorld.drawDistance = 1;
     });
 
     test('should return correct visible chunks for player at origin', () => {
-      const visibleChunks = world.getVisibleChunks(mockPlayer);
+      const visibleChunks = testWorld.getVisibleChunks(mockPlayer);
       
       expect(visibleChunks.length).toBe(9);
       expect(visibleChunks).toContainEqual({ x: 0, z: 0 });
@@ -214,7 +236,7 @@ describe('World', () => {
       mockPlayer.position.x = 64; // Chunk 2
       mockPlayer.position.z = 64; // Chunk 2
       
-      const visibleChunks = world.getVisibleChunks(mockPlayer);
+      const visibleChunks = testWorld.getVisibleChunks(mockPlayer);
       
       expect(visibleChunks.length).toBe(9);
       expect(visibleChunks).toContainEqual({ x: 2, z: 2 });
@@ -226,7 +248,7 @@ describe('World', () => {
       mockPlayer.position.x = -64; // Chunk -2
       mockPlayer.position.z = -64; // Chunk -2
       
-      const visibleChunks = world.getVisibleChunks(mockPlayer);
+      const visibleChunks = testWorld.getVisibleChunks(mockPlayer);
       
       expect(visibleChunks.length).toBe(9);
       expect(visibleChunks).toContainEqual({ x: -2, z: -2 });
@@ -235,9 +257,9 @@ describe('World', () => {
     });
 
     test('should scale with draw distance', () => {
-      world.drawDistance = 2;
+      testWorld.drawDistance = 2;
       
-      const visibleChunks = world.getVisibleChunks(mockPlayer);
+      const visibleChunks = testWorld.getVisibleChunks(mockPlayer);
       
       // drawDistance = 2 means 5x5 = 25 chunks
       expect(visibleChunks.length).toBe(25);
@@ -245,9 +267,16 @@ describe('World', () => {
   });
 
   describe('getChunksToAdd', () => {
-    beforeEach(() => {
-      world.drawDistance = 1;
-      world.generate();
+    let testWorld;
+    
+    beforeEach(async () => {
+      // Create a fresh world instance for these tests
+      testWorld = new World(mockModels);
+      testWorld.drawDistance = 1;
+      testWorld.generate();
+      
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
     });
 
     test('should return empty array when all visible chunks exist', () => {
@@ -257,7 +286,7 @@ describe('World', () => {
         { x: -1, z: 0 }
       ];
       
-      const chunksToAdd = world.getChunksToAdd(visibleChunks);
+      const chunksToAdd = testWorld.getChunksToAdd(visibleChunks);
       
       expect(chunksToAdd.length).toBe(0);
     });
@@ -269,7 +298,7 @@ describe('World', () => {
         { x: 6, z: 6 }   // Does not exist
       ];
       
-      const chunksToAdd = world.getChunksToAdd(visibleChunks);
+      const chunksToAdd = testWorld.getChunksToAdd(visibleChunks);
       
       expect(chunksToAdd.length).toBe(2);
       expect(chunksToAdd).toContainEqual({ x: 5, z: 5 });
@@ -277,29 +306,36 @@ describe('World', () => {
     });
 
     test('should handle empty visible chunks array', () => {
-      const chunksToAdd = world.getChunksToAdd([]);
+      const chunksToAdd = testWorld.getChunksToAdd([]);
       
       expect(chunksToAdd.length).toBe(0);
     });
   });
 
   describe('removeUnusedChunks', () => {
-    beforeEach(() => {
-      world.drawDistance = 1;
-      world.generate();
+    let testWorld;
+    
+    beforeEach(async () => {
+      // Create a fresh world instance for these tests
+      testWorld = new World(mockModels);
+      testWorld.drawDistance = 1;
+      testWorld.generate();
+      
+      // Wait for async generation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
     });
 
     test('should not remove chunks that are still visible', () => {
-      const visibleChunks = world.children.map(chunk => ({
+      const visibleChunks = testWorld.children.map(chunk => ({
         x: chunk.userData.x,
         z: chunk.userData.z
       }));
       
-      const initialCount = world.children.length;
+      const initialCount = testWorld.children.length;
       
-      world.removeUnusedChunks(visibleChunks);
+      testWorld.removeUnusedChunks(visibleChunks);
       
-      expect(world.children.length).toBe(initialCount);
+      expect(testWorld.children.length).toBe(initialCount);
     });
 
     test('should remove chunks that are no longer visible', () => {
@@ -307,11 +343,11 @@ describe('World', () => {
         { x: 0, z: 0 }
       ];
       
-      world.removeUnusedChunks(visibleChunks);
+      testWorld.removeUnusedChunks(visibleChunks);
       
       // Should only have 1 chunk left
-      expect(world.children.length).toBe(1);
-      expect(world.children[0].userData).toEqual({ x: 0, z: 0 });
+      expect(testWorld.children.length).toBe(1);
+      expect(testWorld.children[0].userData).toEqual({ x: 0, z: 0 });
     });
 
     test('should call disposeInstances on removed chunks', () => {
@@ -319,7 +355,7 @@ describe('World', () => {
       
       // Track which chunks get disposed
       const disposedChunks = [];
-      world.children.forEach(chunk => {
+      testWorld.children.forEach(chunk => {
         const originalDispose = chunk.disposeInstances;
         chunk.disposeInstances = function() {
           disposedChunks.push(chunk);
@@ -327,17 +363,17 @@ describe('World', () => {
         };
       });
       
-      world.removeUnusedChunks(visibleChunks);
+      testWorld.removeUnusedChunks(visibleChunks);
       
       // Should have disposed 8 chunks (9 total - 1 kept)
       expect(disposedChunks.length).toBe(8);
     });
 
     test('should handle empty visible chunks array', () => {
-      world.removeUnusedChunks([]);
+      testWorld.removeUnusedChunks([]);
       
       // All chunks should be removed
-      expect(world.children.length).toBe(0);
+      expect(testWorld.children.length).toBe(0);
     });
   });
 

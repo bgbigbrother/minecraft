@@ -94,7 +94,7 @@ describe('StoreWorldBaseClass', () => {
     });
   });
 
-  test('should load world data from event detail', () => {
+  test('should load world data from event detail', async () => {
     const worldData = {
       params: { seed: 123 },
       data: { '0,0,1,1,1': 2 },
@@ -108,9 +108,6 @@ describe('StoreWorldBaseClass', () => {
 
     // Mock the generate method to avoid errors
     world.generate = jest.fn();
-    
-    // Mock setTimeout to avoid timing issues
-    global.setTimeout = jest.fn();
 
     // Create event with world data
     const event = new CustomEvent('game:menu:load', {
@@ -118,6 +115,9 @@ describe('StoreWorldBaseClass', () => {
     });
 
     world.load(event);
+    
+    // Wait for setTimeout to execute
+    await new Promise(resolve => setTimeout(resolve, 150));
     
     // Check that reset was called (which clears chunks)
     expect(world.disposeChunks).toHaveBeenCalled();

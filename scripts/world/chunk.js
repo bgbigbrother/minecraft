@@ -33,6 +33,38 @@ export class ChunkStoreWorldBaseClass extends StoreWorldBaseClass {
         } else {
             // Generate immediately (may cause frame drops)
             chunk.generate(this.models);
+            
+            // If progress tracking is enabled, dispatch progress events
+            if (this.progressTrackingEnabled) {
+                this.initialChunksLoaded++;
+                
+                // Calculate progress percentage
+                const progress = Math.round((this.initialChunksLoaded / this.initialChunksTotal) * 100);
+                
+                // Dispatch progress event
+                document.dispatchEvent(new CustomEvent('game:loading:progress', {
+                    detail: {
+                        current: this.initialChunksLoaded,
+                        total: this.initialChunksTotal,
+                        progress: progress
+                    },
+                    bubbles: true,
+                    cancelable: true
+                }));
+                
+                // If all chunks are loaded, re-enable async loading and dispatch completion event
+                if (this.initialChunksLoaded >= this.initialChunksTotal) {
+                    this.asyncLoading = true;
+                    this.progressTrackingEnabled = false;
+                    this.isInitialLoad = false;
+                    
+                    // Dispatch world loaded event
+                    document.dispatchEvent(new CustomEvent('game:engine:world:loaded', {
+                        bubbles: true,
+                        cancelable: true
+                    }));
+                }
+            }
         }
 
         // Add chunk to world

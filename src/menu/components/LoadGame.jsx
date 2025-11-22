@@ -78,20 +78,9 @@ const LoadGame = memo(() => {
     });
     
     document.dispatchEvent(gameLoadEvent);
-    
-    // Dispatch resume event to automatically enter the world (request pointer lock)
-    const resumeEvent = new CustomEvent('game:menu:resume', {
-      detail: { 
-        timestamp: Date.now()
-      },
-      bubbles: true,
-      cancelable: true
-    });
-    
-    document.dispatchEvent(resumeEvent);
 
-    // Navigate to game route
-    navigate('/game');
+    // Navigate to loading screen
+    navigate('/loading');
   };
 
   /**

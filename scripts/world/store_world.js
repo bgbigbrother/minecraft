@@ -79,8 +79,11 @@ export class StoreWorldBaseClass extends WorldBaseClass {
                 this.name = event.detail.name;
                 this.restorePlayerState(event.detail.player);
                 
-                // Regenerate world with loaded data
-                this.generate();
+                // Delay world generation to allow LoadingScreen to mount and set up listeners
+                // This ensures progress events are captured
+                setTimeout(() => {
+                    this.generate();
+                }, 100);
             } else {
                 console.error(`Wrong world data provided: ${event.detail}`)
             }

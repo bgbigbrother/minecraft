@@ -9,6 +9,7 @@ import MainMenu from './components/MainMenu.jsx';
 import NewGame from './components/NewGame.jsx';
 import GameRunning from './components/GameRunning.jsx';
 import LoadGame from './components/LoadGame.jsx';
+import LoadingScreen from './components/LoadingScreen.jsx';
 import Controls from './components/Controls.jsx';
 import Options from './components/Options.jsx';
 
@@ -26,6 +27,7 @@ function AnimatedRoutes() {
           <Route path="/" element={<ErrorBoundary><MainMenu /></ErrorBoundary>} />
           <Route path="/new" element={<ErrorBoundary><NewGame /></ErrorBoundary>} />
           <Route path="/load" element={<ErrorBoundary><LoadGame /></ErrorBoundary>} />
+          <Route path="/loading" element={<ErrorBoundary><LoadingScreen /></ErrorBoundary>} />
           <Route path="/controls" element={<ErrorBoundary><Controls /></ErrorBoundary>} />
           <Route path="/options" element={<ErrorBoundary><Options /></ErrorBoundary>} />
           <Route path="/game" element={<ErrorBoundary><GameRunning /></ErrorBoundary>} />
