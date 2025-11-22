@@ -60,6 +60,14 @@ export class Vector2 {
     this.x = x;
     this.y = y;
   }
+  set(x, y) {
+    this.x = x;
+    this.y = y;
+    return this;
+  }
+  clone() {
+    return new Vector2(this.x, this.y);
+  }
 }
 
 export class PerspectiveCamera {
@@ -143,9 +151,24 @@ export class Mesh {
 export class CylinderGeometry {}
 export class BoxGeometry {}
 export class SphereGeometry {}
-export class MeshBasicMaterial {}
-export class MeshStandardMaterial {}
-export class MeshLambertMaterial {}
+export class MeshBasicMaterial {
+  constructor(params = {}) {
+    this.color = params.color || 0xffffff;
+    this.map = params.map || null;
+  }
+}
+export class MeshStandardMaterial {
+  constructor(params = {}) {
+    this.color = params.color || 0xffffff;
+    this.map = params.map || null;
+  }
+}
+export class MeshLambertMaterial {
+  constructor(params = {}) {
+    this.color = params.color || 0xffffff;
+    this.map = params.map || null;
+  }
+}
 export class Euler {
   constructor(x = 0, y = 0, z = 0) {
     this.x = x;
@@ -188,13 +211,30 @@ export const PCFSoftShadowMap = 'PCFSoftShadowMap';
 export const SRGBColorSpace = 'srgb';
 export const NearestFilter = 'nearest';
 
+export class Texture {
+  constructor() {
+    this.colorSpace = null;
+    this.magFilter = null;
+    this.minFilter = null;
+    this.repeat = new Vector2(1, 1);
+    this.offset = new Vector2(0, 0);
+    this.needsUpdate = false;
+  }
+  clone() {
+    const cloned = new Texture();
+    cloned.colorSpace = this.colorSpace;
+    cloned.magFilter = this.magFilter;
+    cloned.minFilter = this.minFilter;
+    cloned.repeat = new Vector2(this.repeat.x, this.repeat.y);
+    cloned.offset = new Vector2(this.offset.x, this.offset.y);
+    cloned.needsUpdate = this.needsUpdate;
+    return cloned;
+  }
+}
+
 export class TextureLoader {
   load() {
-    return {
-      colorSpace: null,
-      magFilter: null,
-      minFilter: null
-    };
+    return new Texture();
   }
 }
 
