@@ -15,6 +15,24 @@ import { jungleGrass } from './blocks/jungle_grass';
 import { cactus } from './blocks/cactus';
 import { water } from './blocks/water';
 import { chest } from './blocks/chest';
+import { 
+  texturedChest1,
+  texturedChest2,
+  texturedChest3,
+  texturedChest4,
+  texturedChest5,
+  texturedChest6,
+  texturedChest7,
+  texturedChest8,
+  texturedChest9,
+  texturedChest10,
+  texturedChest11,
+  texturedChest12,
+  texturedChest13,
+  texturedChest14,
+  texturedChest15,
+  texturedChest16
+} from './blocks/textured_chest';
 
 export const blocks = {
   empty,
@@ -33,5 +51,21 @@ export const blocks = {
   cactus,
   jungleGrass,
   water,
-  chest
+  chest,
+  texturedChest1,
+  texturedChest2,
+  texturedChest3,
+  texturedChest4,
+  texturedChest5,
+  texturedChest6,
+  texturedChest7,
+  texturedChest8,
+  texturedChest9,
+  texturedChest10,
+  texturedChest11,
+  texturedChest12,
+  texturedChest13,
+  texturedChest14,
+  texturedChest15,
+  texturedChest16
 };
