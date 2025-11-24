@@ -313,3 +313,4 @@ Resources/Lambdas/ExportAuditLogsLambda/layer/
 
 #cypress download folder
 cypress/downloads/
+generators/
