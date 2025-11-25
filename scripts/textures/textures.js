@@ -18,5 +18,4 @@ export const textures = {
     snow: loadTexture('textures/snow.png'),
     snowSide: loadTexture('textures/snow_side.png'),
     stone: loadTexture('textures/stone.png'),
-    chestTexture: loadTexture('textures/1.20.2_minecraft_textures_atlas_chest_0.webp'),
 };
