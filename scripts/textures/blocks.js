@@ -14,7 +14,6 @@ import { jungleLeaves } from './blocks/jungle_leaves';
 import { jungleGrass } from './blocks/jungle_grass';
 import { cactus } from './blocks/cactus';
 import { water } from './blocks/water';
-import { chest } from './blocks/chest';
 
 export const blocks = {
   empty,
@@ -32,6 +31,5 @@ export const blocks = {
   jungleLeaves,
   cactus,
   jungleGrass,
-  water,
-  chest
+  water
 };

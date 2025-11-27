@@ -14,13 +14,6 @@ export class Player extends  ToolControllsPlayerBase {
     this.inventory = new InventoryManager();
     this.inventory.load();
     
-    // Add chest block to starting inventory for new games
-    // Only add if inventory is empty (new game)
-    if (this.inventory.items.size === 0) {
-      this.inventory.addItem(16, 1); // Add one chest block (ID 16)
-      this.inventory.save(); // Persist the initial inventory
-    }
-    
     scene.add(this.camera);
     scene.add(this.cameraHelper);
     scene.add(this.character);

@@ -2,7 +2,7 @@
 export class GLTFLoader {
   constructor() {}
   
-  load(url, onLoad, onProgress, onError) {
+  load(url, onLoad) {
     // Simulate successful load with a mock GLTF structure
     setTimeout(() => {
       if (onLoad) {
@@ -35,10 +35,10 @@ export class GLTFLoader {
           computeBoundingBox: function() {
             // Already has boundingBox
           },
-          scale: function(x, y, z) {
+          scale: function() {
             // Mock scale operation
           },
-          translate: function(x, y, z) {
+          translate: function() {
             // Mock translate operation
           }
         };
@@ -69,14 +69,8 @@ export class GLTFLoader {
           }
         };
         
-        // Add animations for chest model
-        const animations = url.includes('chest.glb') ? [
-          {
-            name: 'ChestOpen',
-            duration: 1.0,
-            tracks: []
-          }
-        ] : [];
+        // Add animations for animated models
+        const animations = [];
         
         onLoad({
           scene: mockScene,

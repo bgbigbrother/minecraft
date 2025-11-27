@@ -56,12 +56,12 @@ export function animate(player, world, dayNightCycle, toolbarUI, gameOverSystem)
       toolbarUI.render();
     }
 
-    // Update block interaction animations (chest animations, etc.)
+    // Update block interaction animations
     if (player.interactionHandler) {
       player.interactionHandler.update(dt);
     }
     
-    // Update animation mixers for animated blocks (like chests)
+    // Update animation mixers for animated blocks
     if (world.activeAnimationMixers && world.activeAnimationMixers.size > 0) {
       for (const [key, mixer] of world.activeAnimationMixers) {
         mixer.update(dt);

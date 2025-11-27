@@ -58,7 +58,7 @@ When debug mode is enabled, the following information is logged:
 **MouseHandler:**
 - Mouse button clicks with button number and pointer lock state
 - Selected coordinates and active block ID
-- Action taken (break block, place block, interact with chest)
+- Action taken (break block, place block, interact with blocks)
 - Mouse wheel scroll direction and slot changes
 - Tool animation triggers
 

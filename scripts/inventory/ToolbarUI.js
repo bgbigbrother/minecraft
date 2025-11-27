@@ -65,7 +65,6 @@ export class ToolbarUI {
     iconMap.set(13, 'textures/cactus_top.png');        // cactus (top texture)
     iconMap.set(14, 'textures/grass.png');             // jungle grass (uses grass texture with color tint)
     iconMap.set(15, 'textures/stone.png');             // water (using stone as placeholder - will be tinted blue)
-    iconMap.set(16, 'textures/chest_icon.png');          // chest (using wood texture as placeholder)
     
     return iconMap;
   }

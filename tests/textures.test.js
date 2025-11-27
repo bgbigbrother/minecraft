@@ -66,12 +66,4 @@ describe('Blocks', () => {
   test('should have jungle grass block', () => {
     expect(blocks.jungleGrass).toBeDefined();
   });
-
-  test('should have chest block', () => {
-    expect(blocks.chest).toBeDefined();
-    expect(blocks.chest.id).toBe(16);
-    expect(blocks.chest.name).toBe('chest');
-    expect(blocks.chest.spawnable).toBe(false);
-    expect(blocks.chest.isModel).toBe(true);
-  });
 });

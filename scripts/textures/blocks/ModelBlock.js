@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export class ModelBlock {
   static debug = false; // Global debug flag that can be toggled from UI
@@ -44,21 +45,92 @@ export class ModelBlock {
       console.log('[ModelBlock] Scene structure:', gltf.scene);
     }
     
-    // Find the mesh in the scene (might be nested or a SkinnedMesh)
-    let mesh = null;
+    // Find ALL meshes in the scene and merge them
+    const meshes = [];
     gltf.scene.traverse((child) => {
-      if ((child.isMesh || child.isSkinnedMesh) && !mesh) {
-        mesh = child;
+      if (child.isMesh || child.isSkinnedMesh) {
+        meshes.push(child);
       }
     });
     
-    if (!mesh) {
+    if (meshes.length === 0) {
       console.error(`[ModelBlock] No mesh found in model: ${this.name}`);
       return;
     }
     
-    // Clone the geometry and scale it to fit 1 block (1x1x1 unit)
-    this._geometry = mesh.geometry.clone();
+    if (this.debug || ModelBlock.debug) {
+      console.log(`[ModelBlock] Found ${meshes.length} meshes in model`);
+    }
+    
+    // Merge all geometries into one
+    const geometries = [];
+    const materials = [];
+    
+    for (const mesh of meshes) {
+      let geometryToUse = mesh.geometry.clone();
+      
+      // For SkinnedMesh, bake the geometry in its bind pose
+      if (mesh.isSkinnedMesh) {
+        // Apply the bind matrix to get vertices in their rest position
+        if (mesh.bindMatrix) {
+          geometryToUse.applyMatrix4(mesh.bindMatrix);
+        }
+        
+        // Also apply the mesh's local transform
+        if (mesh.matrix) {
+          geometryToUse.applyMatrix4(mesh.matrix);
+        }
+        
+        if (this.debug || ModelBlock.debug) {
+          console.log('[ModelBlock] Baked SkinnedMesh geometry to static geometry for instancing');
+        }
+      }
+      
+      // Apply the mesh's world transform to position it correctly
+      mesh.updateWorldMatrix(true, false);
+      geometryToUse.applyMatrix4(mesh.matrixWorld);
+      
+      geometries.push(geometryToUse);
+      
+      // Clone and configure the material for better visibility
+      const material = mesh.material.clone ? mesh.material.clone() : mesh.material;
+      
+      // Ensure the material receives lighting properly
+      if (material.isMeshStandardMaterial || material.isMeshPhongMaterial) {
+        // Increase emissive to make it brighter in dark areas
+        if (!material.emissive) {
+          material.emissive = new THREE.Color(0x222222);
+        }
+        material.emissiveIntensity = 0.2;
+      }
+      
+      // Ensure double-sided rendering
+      material.side = THREE.DoubleSide;
+      material.needsUpdate = true;
+      
+      materials.push(material);
+    }
+    
+    // Merge all geometries into one
+    if (geometries.length === 1) {
+      this._geometry = geometries[0];
+      this._material = materials[0];
+    } else {
+      // Merge geometries with material groups to preserve different materials
+      const mergedGeometry = BufferGeometryUtils.mergeGeometries(geometries, true);
+      this._geometry = mergedGeometry;
+      
+      // InstancedMesh requires a single material, so we use the first material
+      // The geometry groups will handle different material indices
+      // Clone the first material and ensure it's properly configured
+      this._material = materials[0].clone ? materials[0].clone() : materials[0];
+      this._material.side = THREE.DoubleSide;
+      this._material.needsUpdate = true;
+      
+      if (this.debug || ModelBlock.debug) {
+        console.log(`[ModelBlock] Merged ${geometries.length} geometries with ${materials.length} materials (using first material for InstancedMesh)`);
+      }
+    }
     
     // Calculate bounding box to determine current size
     this._geometry.computeBoundingBox();
@@ -74,12 +146,28 @@ export class ModelBlock {
     const scale = 1.0 / maxDimension;
     this._geometry.scale(scale, scale, scale);
     
-    // Center the geometry at origin
+    // Center the geometry at origin (X and Z only, keep Y at bottom)
     this._geometry.computeBoundingBox();
     const center = this._geometry.boundingBox.getCenter(new THREE.Vector3());
-    this._geometry.translate(-center.x, -center.y, -center.z);
+    this._geometry.translate(-center.x, 0, -center.z);
     
-    this._material = mesh.material;
+    // Move geometry so bottom is at y=0 (sits on top of block)
+    const minY = this._geometry.boundingBox.min.y;
+    this._geometry.translate(0, -minY, 0);
+    
+    // Rotate 90 degrees on Y axis (Math.PI / 2 radians)
+    this._geometry.rotateY(Math.PI / 2);
+    
+    // Recenter X and Z after rotation, keep Y at bottom
+    this._geometry.computeBoundingBox();
+    const centerAfterRotation = this._geometry.boundingBox.getCenter(new THREE.Vector3());
+    this._geometry.translate(-centerAfterRotation.x, 0, -centerAfterRotation.z);
+    
+    // Ensure bottom is still at y=0 after rotation
+    const minYAfterRotation = this._geometry.boundingBox.min.y;
+    this._geometry.translate(0, -minYAfterRotation, 0);
+    
+    // Material is already set above during merge, don't overwrite it
     this._scene = gltf.scene;
     this._loaded = true;
     
@@ -95,15 +183,31 @@ export class ModelBlock {
     }
     
     if (this.debug || ModelBlock.debug) {
+      const finalBBox = this._geometry.boundingBox;
+      const finalSize = {
+        x: finalBBox.max.x - finalBBox.min.x,
+        y: finalBBox.max.y - finalBBox.min.y,
+        z: finalBBox.max.z - finalBBox.min.z
+      };
+      
       console.log('[ModelBlock] Geometry details:', {
         vertices: this._geometry.attributes.position.count,
         boundingBox: this._geometry.boundingBox,
+        finalSize: finalSize,
         scaled: true,
-        centered: true
+        centered: true,
+        rotated: true,
+        hasNormals: !!this._geometry.attributes.normal,
+        hasUVs: !!this._geometry.attributes.uv
       });
+      
+      const materialInfo = Array.isArray(this._material) 
+        ? `Array of ${this._material.length} materials`
+        : this._material.type;
+      
       console.log('[ModelBlock] Material details:', {
-        type: this._material.type,
-        properties: Object.keys(this._material)
+        type: materialInfo,
+        isArray: Array.isArray(this._material)
       });
     }
   }

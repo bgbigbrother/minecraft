@@ -101,15 +101,6 @@ export class MouseHandler {
                     'Coordinates': `{x: ${this.player.selectedCoords.x}, y: ${this.player.selectedCoords.y}, z: ${this.player.selectedCoords.z}}`
                 });
             }
-        } else if (this.player.activeBlockId === blocks.chest?.id) {
-            // Chest selected - trigger chest interaction
-            // Note: Chest interaction logic would be implemented here
-            // For now, we just trigger the tool animation
-            this.logDebug('Action taken', {
-                'Action': 'INTERACT WITH CHEST',
-                'Block type': 'Chest',
-                'Coordinates': `{x: ${this.player.selectedCoords.x}, y: ${this.player.selectedCoords.y}, z: ${this.player.selectedCoords.z}}`
-            });
         } else {
             // Other blocks - could be used for future interactions
             this.logDebug('Action taken', {
@@ -126,7 +117,7 @@ export class MouseHandler {
     /**
      * Handles right-click block placement (NEW FEATURE)
      * Places the currently selected block at the target coordinates
-     * Also handles interactions with existing blocks (like chests)
+     * Also handles interactions with existing blocks
      */
     handleRightClick() {
         // Don't place blocks if pickaxe is selected
@@ -145,7 +136,7 @@ export class MouseHandler {
             this.player.selectedCoords.z
         );
 
-        // If there's an existing block, check if it's interactable (like a chest)
+        // If there's an existing block, check if it's interactable
         if (existingBlock && existingBlock.id !== blocks.empty.id) {
             const blockType = blocks[Object.keys(blocks).find(key => blocks[key].id === existingBlock.id)];
             

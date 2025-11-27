@@ -151,13 +151,30 @@ export class Terrain extends THREE.Group {
         // Verify the block exists, it isn't an empty block type, and it doesn't already have an instance
         if (block && block.id !== blocks.empty.id && block.instanceId === null) {
             // Get the mesh and instance id of the block
-            const mesh = this.children.find((instanceMesh) => instanceMesh.name === block.id);
+            let mesh = this.children.find((instanceMesh) => instanceMesh.name === block.id);
             
-            // If mesh doesn't exist (e.g., model not loaded yet), skip instance creation
+            // If mesh doesn't exist, create it for this chunk
             if (!mesh) {
-                // This is expected for model blocks that haven't finished loading yet
-                // The placement should be prevented at a higher level
-                return;
+                const blockType = Object.values(blocks).find(b => b.id === block.id);
+                
+                // Check if this is a model block that hasn't loaded yet
+                if (blockType && blockType.isModel && !blockType.geometry) {
+                    console.warn(`[Terrain] Cannot add instance for ${blockType.name} - geometry not loaded yet`);
+                    return;
+                }
+                
+                // Create the instanced mesh for this block type
+                const maxCount = this.size.width * this.size.width * this.size.height;
+                const blockGeometry = blockType.geometry || new THREE.BoxGeometry();
+                
+                mesh = new THREE.InstancedMesh(blockGeometry, blockType.material, maxCount);
+                mesh.name = block.id;
+                mesh.count = 0;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                // Add the mesh to this chunk
+                this.add(mesh);
             }
             
             const instanceId = mesh.count++;
@@ -169,6 +186,11 @@ export class Terrain extends THREE.Group {
             mesh.setMatrixAt(instanceId, matrix);
             mesh.instanceMatrix.needsUpdate = true;
             mesh.computeBoundingSphere();
+            
+            const blockType = Object.values(blocks).find(b => b.id === block.id);
+            if (blockType && blockType.isModel) {
+                console.log(`[Terrain] Added instance for ${blockType.name} at (${x},${y},${z}), instanceId: ${instanceId}, mesh.count: ${mesh.count}`);
+            }
         }
     }
 
