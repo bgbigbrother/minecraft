@@ -1,0 +1,108 @@
+/* Toolbar styles - Diablo-inspired design */
+
+#toolbar-container {
+  position: fixed;
+  bottom: var(--spacing-xxl);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  filter: drop-shadow(var(--shadow-drop-xl));
+}
+
+#toolbar {
+  background: var(--gradient-bg-dark);
+  border: var(--border-thick) solid transparent;
+  border-image: var(--gradient-border-bronze) 1;
+  padding: var(--toolbar-padding-vertical) var(--toolbar-padding-horizontal);
+  display: flex;
+  justify-content: center;
+  column-gap: var(--toolbar-gap);
+  position: relative;
+  box-shadow: var(--shadow-inset-light), var(--shadow-inset-deep),
+    var(--shadow-drop-lg);
+}
+
+#toolbar::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--border-thick) * -1);
+  left: calc(var(--border-thick) * -1);
+  right: calc(var(--border-thick) * -1);
+  bottom: calc(var(--border-thick) * -1);
+  background: var(--gradient-bg-bronze);
+  z-index: -1;
+  border-radius: var(--radius-md);
+}
+
+.toolbar-icon {
+  width: var(--toolbar-icon-size);
+  height: var(--toolbar-icon-size);
+  border: var(--border-medium) solid var(--color-bronze-border);
+  background: var(--gradient-item-slot);
+  box-shadow: var(--shadow-inset-item), var(--shadow-inset-item-highlight),
+    var(--shadow-drop-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  position: relative;
+  padding: var(--spacing-sm);
+  image-rendering: pixelated;
+}
+
+.toolbar-icon:hover {
+  border-color: var(--color-bronze-light);
+  box-shadow: var(--shadow-inset-item), var(--shadow-inset-item-highlight),
+    var(--shadow-drop-sm), var(--shadow-glow-bronze);
+  transform: translateY(-2px);
+}
+
+.toolbar-icon.selected {
+  border: var(--border-thick) solid var(--color-red-border);
+  background: var(--gradient-item-selected);
+  box-shadow: inset 0 2px 6px var(--color-red-highlight-1),
+    inset 0 -2px 4px var(--color-black-shadow-deep), var(--shadow-glow-red-lg),
+    var(--shadow-glow-red-xl), var(--shadow-drop-md);
+  transform: translateY(-3px) scale(1.05);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: inset 0 2px 6px var(--color-red-highlight-1),
+      inset 0 -2px 4px var(--color-black-shadow-deep), var(--shadow-glow-red-lg),
+      var(--shadow-glow-red-xl), var(--shadow-drop-md);
+  }
+  50% {
+    box-shadow: inset 0 2px 6px var(--color-red-highlight-2),
+      inset 0 -2px 4px var(--color-black-shadow-deep),
+      0 0 25px var(--color-red-primary), 0 0 50px var(--color-red-glow-medium),
+      var(--shadow-drop-md);
+  }
+}
+
+/* Toolbar slot wrapper for positioning quantity overlays */
+.toolbar-slot {
+  position: relative;
+  display: inline-block;
+}
+
+/* Quantity overlay styling for inventory items */
+.toolbar-quantity {
+  position: absolute;
+  bottom: var(--spacing-sm);
+  right: var(--spacing-sm);
+  font-size: var(--font-size-md);
+  font-weight: bold;
+  color: var(--color-gold);
+  background: var(--gradient-quantity-bg);
+  padding: var(--spacing-xs) 6px;
+  border-radius: var(--radius-lg);
+  border: var(--border-thin) solid var(--color-red-border-item);
+  pointer-events: none;
+  text-shadow: 0 0 4px var(--color-gold-glow), 1px 1px 2px var(--color-black-overlay),
+    0 0 8px var(--color-orange-glow);
+  line-height: 1;
+  min-width: var(--spacing-xl);
+  text-align: center;
+  box-shadow: var(--shadow-drop-sm), inset 0 1px 2px var(--color-highlight-item-strong);
+}

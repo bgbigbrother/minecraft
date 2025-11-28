@@ -1,0 +1,77 @@
+/* Health bar styles - Diablo-inspired design */
+
+#health-bar-container {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-index-ui);
+  filter: drop-shadow(var(--shadow-drop-md));
+}
+
+#health-bar-background {
+  width: var(--toolbar-width);
+  height: var(--health-bar-height);
+  background: var(--gradient-bg-dark);
+  border: var(--border-medium) solid transparent;
+  border-image: var(--gradient-border-bronze) 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-inset-light), var(--shadow-inset-dark),
+    var(--shadow-drop-md);
+  position: relative;
+  padding: var(--health-bar-padding);
+}
+
+#health-bar-background::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--border-medium) * -1);
+  left: calc(var(--border-medium) * -1);
+  right: calc(var(--border-medium) * -1);
+  bottom: calc(var(--border-medium) * -1);
+  background: var(--gradient-bg-bronze);
+  z-index: -1;
+  border-radius: var(--radius-md);
+}
+
+#health-bar-background::after {
+  content: '';
+  position: absolute;
+  top: var(--health-bar-padding);
+  left: var(--health-bar-padding);
+  right: var(--health-bar-padding);
+  bottom: var(--health-bar-padding);
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    var(--color-black-divider) 1px,
+    transparent 2px,
+    transparent 32px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+#health-bar-fill {
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-health-bar);
+  transition: width var(--transition-medium), background var(--transition-medium);
+  box-shadow: inset 0 1px 2px var(--color-red-highlight-3),
+    inset 0 -1px 2px var(--color-black-shadow), var(--shadow-glow-red-sm);
+  position: relative;
+  border-radius: var(--radius-sm);
+}
+
+#health-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: var(--gradient-health-highlight);
+  pointer-events: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}

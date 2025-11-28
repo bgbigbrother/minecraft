@@ -1,0 +1,19 @@
+/* Info and status display styles */
+
+#info {
+  position: absolute;
+  font-family: var(--font-family-fallback);
+  font-size: var(--font-size-lg);
+  right: 0;
+  bottom: 0;
+  color: var(--color-white);
+  margin: var(--spacing-md);
+}
+
+#status {
+  position: fixed;
+  bottom: var(--spacing-md);
+  left: var(--spacing-md);
+  font-size: var(--font-size-xl);
+  color: var(--color-white);
+}

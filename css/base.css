@@ -1,0 +1,21 @@
+/* Base styles and typography */
+
+@font-face {
+  font-family: 'Minecraft';
+  src: url('/fonts/Minecraft.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-primary);
+}
+
+h1 {
+  font-size: var(--font-size-xxl);
+}
+
+audio {
+  display: none;
+}

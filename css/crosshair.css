@@ -1,0 +1,37 @@
+/* Crosshair styles */
+
+#crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: var(--crosshair-size);
+  height: var(--crosshair-size);
+  margin-left: calc(var(--crosshair-size) / -2);
+  margin-top: calc(var(--crosshair-size) / -2);
+  z-index: var(--z-index-crosshair);
+  pointer-events: none;
+  display: none;
+}
+
+#crosshair::before,
+#crosshair::after {
+  content: '';
+  position: absolute;
+  background-color: var(--color-white-transparent);
+}
+
+#crosshair::before {
+  left: 50%;
+  top: 0;
+  width: var(--crosshair-line-width);
+  height: 100%;
+  margin-left: calc(var(--crosshair-line-width) / -2);
+}
+
+#crosshair::after {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: var(--crosshair-line-width);
+  margin-top: calc(var(--crosshair-line-width) / -2);
+}
