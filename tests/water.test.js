@@ -25,19 +25,11 @@ jest.mock('../scripts/world/world.js', () => ({
   }
 }));
 
-// Mock ToolLoader
-jest.mock('../scripts/player/tool_loader.js', () => ({
-  ToolLoader: class MockToolLoader {
-    constructor(callback) {
-      setTimeout(() => {
-        callback({
-          pickaxe: {
-            position: { set: jest.fn() },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { set: jest.fn() }
-          }
-        });
-      }, 0);
+// Mock ArmsLoader (no longer using ToolLoader)
+jest.mock('../scripts/player/arms_loader.js', () => ({
+  ArmsLoader: class MockArmsLoader {
+    constructor() {
+      // Don't call callback to avoid initialization issues in tests
     }
   }
 }));

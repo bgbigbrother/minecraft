@@ -249,7 +249,7 @@ export class KeyboardHandler {
 
         // Get the block ID from the toolbar slot contents
         if (slotNumber === 0) {
-            // Slot 0 is always the pickaxe (empty block ID)
+            // Slot 0 is always destroy mode (empty block ID)
             this.player.activeBlockId = blocks.empty.id;
             this.player.tool.container.visible = true;
             document.getElementById('toolbar-0')?.classList.add('selected');
@@ -261,7 +261,7 @@ export class KeyboardHandler {
                 this.player.tool.container.visible = false;
                 document.getElementById(`toolbar-${slotNumber}`)?.classList.add('selected');
             } else {
-                // Slot is empty, switch to pickaxe
+                // Slot is empty, switch to destroy mode
                 this.player.activeBlockId = blocks.empty.id;
                 this.player.tool.container.visible = true;
                 document.getElementById('toolbar-0')?.classList.add('selected');

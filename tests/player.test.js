@@ -21,20 +21,11 @@ jest.mock('../scripts/world/world.js', () => ({
   }
 }));
 
-// Mock ToolLoader
-jest.mock('../scripts/player/tool_loader.js', () => ({
-  ToolLoader: class MockToolLoader {
-    constructor(callback) {
-      // Simulate async loading with a mock pickaxe
-      setTimeout(() => {
-        callback({
-          pickaxe: {
-            position: { set: jest.fn() },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { set: jest.fn() }
-          }
-        });
-      }, 0);
+// Mock ArmsLoader (no longer using ToolLoader)
+jest.mock('../scripts/player/arms_loader.js', () => ({
+  ArmsLoader: class MockArmsLoader {
+    constructor() {
+      // Don't call callback to avoid initialization issues in tests
     }
   }
 }));
@@ -148,22 +139,9 @@ describe('Player', () => {
       expect(mockPhysics.update).toHaveBeenCalledWith(0.016, player, mockWorld);
     });
 
-    test('should call updateToolAnimation when tool.animate is true', () => {
-      const spy = jest.spyOn(player, 'updateToolAnimation');
-      player.tool.animate = true;
-      
-      player.update(0.016, mockWorld);
-      
-      expect(spy).toHaveBeenCalled();
-    });
-
-    test('should not call updateToolAnimation when tool.animate is false', () => {
-      const spy = jest.spyOn(player, 'updateToolAnimation');
-      player.tool.animate = false;
-      
-      player.update(0.016, mockWorld);
-      
-      expect(spy).not.toHaveBeenCalled();
+    test('should have updateArmsAnimation method', () => {
+      expect(player.updateArmsAnimation).toBeDefined();
+      expect(typeof player.updateArmsAnimation).toBe('function');
     });
   });
 
@@ -201,8 +179,9 @@ describe('Player', () => {
 
   describe('inheritance', () => {
     test('should inherit from ToolControllsPlayerBase', () => {
-      expect(player.setTool).toBeDefined();
-      expect(player.updateToolAnimation).toBeDefined();
+      expect(player.setArms).toBeDefined();
+      expect(player.updateArmsAnimation).toBeDefined();
+      expect(player.playArmsAnimation).toBeDefined();
     });
 
     test('should inherit from ControllsPlayerBase', () => {

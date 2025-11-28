@@ -82,12 +82,12 @@ export class MouseHandler {
 
     /**
      * Handles left-click functionality
-     * Breaks blocks with pickaxe or triggers interactions with special blocks
+     * Breaks blocks in destroy mode or triggers interactions with special blocks
      */
     handleLeftClick() {
-        // Check if active block is pickaxe (empty block ID)
+        // Check if active block is destroy mode (empty block ID)
         if (this.player.activeBlockId === blocks.empty.id) {
-            // Pickaxe selected - remove block at selected coordinates
+            // Destroy mode selected - remove block at selected coordinates
             if (this.player.world) {
                 this.player.world.removeBlock(
                     this.player.selectedCoords.x,
@@ -95,9 +95,14 @@ export class MouseHandler {
                     this.player.selectedCoords.z
                 );
                 
+                // Trigger block break animation on arms (if available)
+                if (this.player.onBlockBreak) {
+                    this.player.onBlockBreak();
+                }
+                
                 this.logDebug('Action taken', {
                     'Action': 'BREAK BLOCK',
-                    'Block type': 'Pickaxe (empty)',
+                    'Block type': 'Destroy mode (empty)',
                     'Coordinates': `{x: ${this.player.selectedCoords.x}, y: ${this.player.selectedCoords.y}, z: ${this.player.selectedCoords.z}}`
                 });
             }
@@ -120,11 +125,11 @@ export class MouseHandler {
      * Also handles interactions with existing blocks
      */
     handleRightClick() {
-        // Don't place blocks if pickaxe is selected
+        // Don't place blocks if destroy mode is selected
         if (this.player.activeBlockId === blocks.empty.id) {
             this.logDebug('Action taken', {
-                'Action': 'NONE (pickaxe selected)',
-                'Block type': 'Pickaxe (empty)'
+                'Action': 'NONE (destroy mode selected)',
+                'Block type': 'Destroy mode (empty)'
             });
             return;
         }

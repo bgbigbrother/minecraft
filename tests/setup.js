@@ -37,6 +37,16 @@ global.THREE = {
       this.near = near;
       this.far = far;
       this.position = { x: 0, y: 0, z: 0, set: function(x, y, z) { this.x = x; this.y = y; this.z = z; } };
+      this.rotation = { x: 0, y: 0, z: 0 };
+      this.children = [];
+      this.layers = { enable: function() {}, set: function() {} };
+    }
+    add(obj) {
+      this.children.push(obj);
+    }
+    remove(obj) {
+      const index = this.children.indexOf(obj);
+      if (index > -1) this.children.splice(index, 1);
     }
     lookAt() {}
     updateProjectionMatrix() {}
@@ -45,7 +55,11 @@ global.THREE = {
     constructor() {
       this.children = [];
       this.position = { x: 0, y: 0, z: 0, set: function(x, y, z) { this.x = x; this.y = y; this.z = z; } };
+      this.scale = { x: 1, y: 1, z: 1, set: function(x, y, z) { this.x = x; this.y = y; this.z = z; } };
+      this.rotation = { x: 0, y: 0, z: 0, set: function(x, y, z) { this.x = x; this.y = y; this.z = z; } };
       this.userData = {};
+      this.castShadow = false;
+      this.receiveShadow = false;
     }
     add(obj) {
       this.children.push(obj);
@@ -139,6 +153,10 @@ global.THREE = {
       this.rotation = { x: 0, y: 0, z: 0 };
       this.scale = { x: 1, y: 1, z: 1, set: function(x, y, z) { this.x = x; this.y = y; this.z = z; } };
       this.layers = { set: function() {} };
+      this.isMesh = true;
+      this.castShadow = false;
+      this.receiveShadow = false;
+      this.frustumCulled = true;
     }
     rotateX(angle) {
       this.rotation.x += angle;

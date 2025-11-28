@@ -31,7 +31,7 @@ Minecraft.js is a browser-based voxel game that recreates the core mechanics of 
 ### Gameplay Mechanics
 - **First-Person Controls** - Smooth WASD movement with mouse look
 - **Block Placement/Destruction** - Full terraforming capabilities
-- **Tool System** - Pickaxe for mining blocks
+- **Animated Arms System** - First-person arms with context-aware animations
 - **Inventory Hotbar** - Quick access to 8 different block types
 - **Sprint & Jump** - Enhanced movement options
 - **Collision Detection** - Realistic physics interactions
@@ -95,7 +95,7 @@ The built files will be in the `dist/` directory, ready for deployment to any st
 ### Interaction
 - **Left Click** - Destroy block
 - **Right Click** - Place block
-- **0** - Select pickaxe (mining tool)
+- **0** - Select destroy mode (mining)
 - **1-8** - Select block type from hotbar
 - **Mouse Wheel** - Cycle through hotbar items
 
@@ -121,7 +121,7 @@ minecraft-test-2/
 │   │   └── Minecraft.ttf
 │   ├── models/               # 3D models (GLB format)
 │   │   ├── cow.glb
-│   │   └── pickaxe.glb
+│   │   └── first_person_arms.glb
 │   └── textures/             # Block textures (PNG)
 │       ├── grass.png
 │       ├── dirt.png

@@ -44,7 +44,7 @@
       "title": "Interaction",
       "break": "Left Click - Break Block",
       "place": "Right Click - Place Block",
-      "pickaxe": "0 - Select Pickaxe",
+      "destroyMode": "0 - Select Destroy Mode",
       "blocks": "1-8 - Select Block"
     },
     "system": {

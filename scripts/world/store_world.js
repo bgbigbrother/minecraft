@@ -102,7 +102,11 @@ export class StoreWorldBaseClass extends WorldBaseClass {
             return {
                 position: { x: 32, y: 32, z: 32 },
                 health: 100,
-                inventory: {}
+                inventory: {},
+                animationState: {
+                    currentState: 'IDLE',
+                    combatMode: false
+                }
             };
         }
         
@@ -113,7 +117,11 @@ export class StoreWorldBaseClass extends WorldBaseClass {
                 z: parseInt(this.player.position.z)
             },
             health: this.player.health,
-            inventory: this.player.inventory ? this.player.inventory.toJSON() : {}
+            inventory: this.player.inventory ? this.player.inventory.toJSON() : {},
+            animationState: this.player.getAnimationState ? this.player.getAnimationState() : {
+                currentState: 'IDLE',
+                combatMode: false
+            }
         };
     }
     
@@ -146,6 +154,12 @@ export class StoreWorldBaseClass extends WorldBaseClass {
                 this.player.inventory.fromJSON(playerData.inventory);
                 this.player.inventory.save(); // Persist to localStorage
             }
+            
+            // Restore animation state
+            if (playerData.animationState && this.player.setAnimationState) {
+                this.player.setAnimationState(playerData.animationState);
+            }
+            
             document.removeEventListener('game:engine:world:loaded', onWorldLoaded);
         };
         

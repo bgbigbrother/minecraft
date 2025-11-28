@@ -30,14 +30,22 @@ export class Player extends  ToolControllsPlayerBase {
     this.updateRaycaster(world);
 
     if(this.#physics) {
+      // Store previous water state to detect transitions
+      const wasInWater = this.inWater;
+      
       // Check water status before physics update
       this.inWater = this.#physics.isPlayerInWater(this, world);
       
+      // Handle swimming animation transitions
+      if (this.inWater && !wasInWater) {
+        // Just entered water - play swimming animation
+        this.playArmsAnimation('HANDS_BELOW', true);
+      } else if (!this.inWater && wasInWater) {
+        // Just exited water - return to idle animation
+        this.playArmsAnimation('IDLE', true);
+      }
+      
       this.#physics.update(dt, this, world);
-    }
-
-    if (this.tool.animate) {
-      this.updateToolAnimation();
     }
     
     // Update fall damage tracking after physics update

@@ -268,6 +268,24 @@ describe('Animation Module', () => {
     expect(mockPlayer.tool.container.visible).toBe(false);
   });
 
+  test('should show tool container when controls are locked', () => {
+    mockPlayer.controls.isLocked = true;
+    mockPlayer.tool.container.visible = false;
+    
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
+    
+    expect(mockPlayer.tool.container.visible).toBe(false);
+  });
+
+  test('should hide player character when controls are locked', () => {
+    mockPlayer.controls.isLocked = true;
+    mockPlayer.character.visible = true;
+    
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
+    
+    expect(mockPlayer.character.visible).toBe(true);
+  });
+
   test('should render scene with orbit camera when controls are unlocked', () => {
     mockPlayer.controls.isLocked = false;
     
@@ -327,5 +345,38 @@ describe('Animation Module', () => {
     animate(mockPlayer, mockWorld, mockDayNightCycle);
     
     expect(global.requestAnimationFrame).toHaveBeenCalledTimes(3);
+  });
+
+  test('should update arms animation when controls are locked and updateArmsAnimation exists', () => {
+    mockPlayer.controls.isLocked = true;
+    mockPlayer.updateArmsAnimation = jest.fn();
+    
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
+    
+    expect(mockPlayer.updateArmsAnimation).toHaveBeenCalled();
+    expect(mockPlayer.updateArmsAnimation).toHaveBeenCalledWith(expect.any(Number));
+    
+    // Verify delta time is a reasonable value
+    const deltaTime = mockPlayer.updateArmsAnimation.mock.calls[0][0];
+    expect(deltaTime).toBeGreaterThan(0);
+    expect(deltaTime).toBeLessThan(1);
+  });
+
+  test('should not update arms animation when controls are unlocked', () => {
+    mockPlayer.controls.isLocked = false;
+    mockPlayer.updateArmsAnimation = jest.fn();
+    
+    animate(mockPlayer, mockWorld, mockDayNightCycle);
+    
+    expect(mockPlayer.updateArmsAnimation).not.toHaveBeenCalled();
+  });
+
+  test('should not crash when updateArmsAnimation does not exist', () => {
+    mockPlayer.controls.isLocked = true;
+    delete mockPlayer.updateArmsAnimation;
+    
+    expect(() => {
+      animate(mockPlayer, mockWorld, mockDayNightCycle);
+    }).not.toThrow();
   });
 });

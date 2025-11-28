@@ -79,8 +79,11 @@ export class PerspectiveCamera {
     this.position = new Vector3();
     this.rotation = { x: 0, y: 0, z: 0 };
     this.layers = { enable: () => {}, set: () => {} };
+    this.children = [];
   }
-  add() {}
+  add(obj) {
+    this.children.push(obj);
+  }
   lookAt() {}
 }
 
@@ -104,7 +107,17 @@ export class Group {
     this.position = new Vector3();
     this.userData = {};
     this.scale = new Vector3(1, 1, 1);
-    this.rotation = { x: 0, y: 0, z: 0 };
+    this.rotation = {
+      x: 0,
+      y: 0,
+      z: 0,
+      set: function(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        return this;
+      }
+    };
     this.receiveShadow = false;
     this.castShadow = false;
   }
@@ -286,6 +299,7 @@ export class InstancedMesh extends Mesh {
 export class AnimationMixer {
   constructor(model) {
     this.model = model;
+    this._listeners = {};
   }
   update() {}
   clipAction(clip) {
@@ -294,14 +308,38 @@ export class AnimationMixer {
       play: () => {},
       stop: () => {},
       setLoop: () => {},
+      crossFadeTo: () => {},
+      loop: 2201,
       clampWhenFinished: false
     };
+  }
+  addEventListener(type, listener) {
+    if (!this._listeners[type]) {
+      this._listeners[type] = [];
+    }
+    this._listeners[type].push(listener);
+  }
+  removeEventListener(type, listener) {
+    if (!this._listeners[type]) return;
+    const index = this._listeners[type].indexOf(listener);
+    if (index > -1) {
+      this._listeners[type].splice(index, 1);
+    }
+  }
+  dispatchEvent(event) {
+    if (!this._listeners[event.type]) return;
+    this._listeners[event.type].forEach(listener => listener(event));
   }
 }
 
 export const LoopOnce = 2200;
 
 export class AnimationClip {
+  constructor(name, duration, tracks) {
+    this.name = name;
+    this.duration = duration;
+    this.tracks = tracks || [];
+  }
   static findByName(animations, name) {
     return animations.find(anim => anim.name === name);
   }

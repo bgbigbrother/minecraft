@@ -46,7 +46,7 @@ export class PlayerBase {
     // Block selection and interaction
     raycaster = new Raycaster(new Vector3(), new Vector3(), 0, 3); // Ray for block selection (max distance: 3)
     selectedCoords = null; // World coordinates of currently selected block
-    activeBlockId = blocks.empty.id; // Currently selected block type (0 = pickaxe/destroy mode)
+    activeBlockId = blocks.empty.id; // Currently selected block type (0 = destroy mode, >0 = place block)
     center_screen = new Vector2(); // Center of screen for raycasting (0, 0)
 
     // Player character model (visible in third-person view)

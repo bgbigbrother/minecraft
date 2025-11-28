@@ -45,7 +45,7 @@ export class ItemThrower {
     // Get the currently selected block ID from the toolbar
     const blockId = toolbarUI.getSelectedBlockId();
     
-    // Return false if no item is selected (empty slot or pickaxe)
+    // Return false if no item is selected (empty slot or destroy mode)
     if (blockId === null) {
       return false;
     }

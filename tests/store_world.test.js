@@ -79,7 +79,11 @@ describe('StoreWorldBaseClass', () => {
     expect(playerState).toEqual({
       position: { x: 10, y: 32, z: 30 },
       health: 85,
-      inventory: { items: { 1: 5, 2: 3 } }
+      inventory: { items: { 1: 5, 2: 3 } },
+      animationState: {
+        currentState: 'IDLE',
+        combatMode: false
+      }
     });
   });
 
@@ -90,7 +94,11 @@ describe('StoreWorldBaseClass', () => {
     expect(playerState).toEqual({
       position: { x: 32, y: 32, z: 32 },
       health: 100,
-      inventory: {}
+      inventory: {},
+      animationState: {
+        currentState: 'IDLE',
+        combatMode: false
+      }
     });
   });
 
@@ -151,8 +159,15 @@ describe('StoreWorldBaseClass', () => {
     const playerData = {
       position: { x: 100, y: 200, z: 300 },
       health: 50,
-      inventory: { items: { 5: 20 } }
+      inventory: { items: { 5: 20 } },
+      animationState: {
+        currentState: 'COMBAT_IDLE',
+        combatMode: true
+      }
     };
+
+    // Add setAnimationState method to mock player
+    mockPlayer.setAnimationState = jest.fn();
 
     world.restorePlayerState(playerData);
     
@@ -164,6 +179,10 @@ describe('StoreWorldBaseClass', () => {
     expect(mockPlayer.setHealth).toHaveBeenCalledWith(50);
     expect(mockPlayer.inventory.fromJSON).toHaveBeenCalledWith({ items: { 5: 20 } });
     expect(mockPlayer.inventory.save).toHaveBeenCalled();
+    expect(mockPlayer.setAnimationState).toHaveBeenCalledWith({
+      currentState: 'COMBAT_IDLE',
+      combatMode: true
+    });
   });
 
   test('should handle missing player when restoring state', () => {
@@ -175,6 +194,53 @@ describe('StoreWorldBaseClass', () => {
 
     // Should not throw error
     expect(() => world.restorePlayerState(playerData)).not.toThrow();
+  });
+
+  test('should get player animation state when player has getAnimationState method', () => {
+    mockPlayer.getAnimationState = jest.fn(() => ({
+      currentState: 'PUNCH_LEFT',
+      combatMode: true
+    }));
+
+    const playerState = world.getPlayerState();
+    
+    expect(mockPlayer.getAnimationState).toHaveBeenCalled();
+    expect(playerState.animationState).toEqual({
+      currentState: 'PUNCH_LEFT',
+      combatMode: true
+    });
+  });
+
+  test('should use default animation state when player lacks getAnimationState method', () => {
+    // Ensure player doesn't have getAnimationState method
+    delete mockPlayer.getAnimationState;
+
+    const playerState = world.getPlayerState();
+    
+    expect(playerState.animationState).toEqual({
+      currentState: 'IDLE',
+      combatMode: false
+    });
+  });
+
+  test('should handle missing animation state in restore gracefully', () => {
+    const playerData = {
+      position: { x: 100, y: 200, z: 300 },
+      health: 50,
+      inventory: { items: { 5: 20 } }
+      // No animationState
+    };
+
+    mockPlayer.setAnimationState = jest.fn();
+
+    world.restorePlayerState(playerData);
+    
+    // Trigger the world loaded event
+    const event = new CustomEvent('game:engine:world:loaded');
+    document.dispatchEvent(event);
+    
+    // Should not call setAnimationState when animationState is missing
+    expect(mockPlayer.setAnimationState).not.toHaveBeenCalled();
   });
 
   test('should register event listeners', () => {

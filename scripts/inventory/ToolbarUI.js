@@ -13,7 +13,7 @@ export class ToolbarUI {
     // Store reference to inventory manager
     this.inventoryManager = inventoryManager;
     
-    // Maximum number of item slots to display (excluding pickaxe at toolbar-0)
+    // Maximum number of item slots to display (excluding destroy mode at toolbar-0)
     this.maxSlots = 8;
     
     // Empty slot placeholder texture
@@ -35,8 +35,8 @@ export class ToolbarUI {
     // Cache of current slot contents [blockId, quantity] indexed by slot number (1-8)
     this.slotContents = new Map();
     
-    // Currently selected toolbar slot (0 = pickaxe, 1-8 = inventory slots)
-    // Default to 0 (pickaxe) as it's the starting tool
+    // Currently selected toolbar slot (0 = destroy mode, 1-8 = inventory slots)
+    // Default to 0 (destroy mode) as it's the starting state
     this.selectedSlot = 0;
   }
 
@@ -131,12 +131,12 @@ export class ToolbarUI {
         // Update to the new block ID in this slot
         this.player.activeBlockId = newContent[0];
       } else {
-        // Slot is now empty, switch to pickaxe
+        // Slot is now empty, switch to destroy mode
         this.setSelectedSlot(0);
       }
     }
     
-    // Ensure toolbar-0 (pickaxe) is never affected by inventory rendering
+    // Ensure toolbar-0 (destroy mode) is never affected by inventory rendering
     // This is handled by only updating slots 1-8, never touching slot 0
   }
 
@@ -149,9 +149,9 @@ export class ToolbarUI {
    * @param {number} quantity - Item quantity
    */
   updateSlot(slotIndex, blockId, quantity) {
-    // Ensure we never modify toolbar-0 (pickaxe slot)
+    // Ensure we never modify toolbar-0 (destroy mode slot)
     if (slotIndex === 0) {
-      console.warn('Attempted to modify toolbar-0 (pickaxe slot) - operation blocked');
+      console.warn('Attempted to modify toolbar-0 (destroy mode slot) - operation blocked');
       return;
     }
     
@@ -227,12 +227,12 @@ export class ToolbarUI {
 
   /**
    * Clear all toolbar item slots (1-8)
-   * Keeps toolbar-0 (pickaxe) unchanged
+   * Keeps toolbar-0 (destroy mode) unchanged
    * Requirements: 8.3, 8.4, 8.5
    */
   clearToolbar() {
     // Iterate through toolbar slots 1-8 only
-    // Explicitly skip toolbar-0 (pickaxe) to ensure it's never affected
+    // Explicitly skip toolbar-0 (destroy mode) to ensure it's never affected
     for (let i = 1; i <= this.maxSlots; i++) {
       const slotElement = document.getElementById(`toolbar-${i}`);
       
@@ -249,21 +249,16 @@ export class ToolbarUI {
       }
     }
     
-    // toolbar-0 (pickaxe) is intentionally left unchanged
-    // Verify pickaxe slot is still intact
-    const pickaxeSlot = document.getElementById('toolbar-0');
-    if (pickaxeSlot && pickaxeSlot.src && !pickaxeSlot.src.includes('pickaxe.png')) {
-      console.warn('Pickaxe slot (toolbar-0) may have been modified - restoring');
-      pickaxeSlot.src = 'textures/pickaxe.png';
-      pickaxeSlot.style.opacity = '1';
-    }
+    // toolbar-0 (destroy mode) is intentionally left unchanged
+    // Note: The arms system now handles the visual representation
+    // This slot represents the mining/destroy mode rather than a specific tool
   }
 
   /**
    * Update the selected toolbar slot
    * Requirements: 10.7
    * 
-   * @param {number} index - Slot index (0-8, where 0 is pickaxe)
+   * @param {number} index - Slot index (0-8, where 0 is destroy mode)
    */
   setSelectedSlot(index) {
     // Validate slot index
@@ -290,7 +285,7 @@ export class ToolbarUI {
     // Update player's activeBlockId if player reference exists
     if (this.player) {
       if (index === 0) {
-        // Pickaxe selected
+        // Destroy mode selected
         this.player.activeBlockId = 0;
         this.player.tool.container.visible = true;
       } else {
@@ -300,7 +295,7 @@ export class ToolbarUI {
           this.player.activeBlockId = blockId;
           this.player.tool.container.visible = false;
         } else {
-          // Empty slot, switch back to pickaxe
+          // Empty slot, switch back to destroy mode
           this.player.activeBlockId = 0;
           this.player.tool.container.visible = true;
         }
@@ -312,10 +307,10 @@ export class ToolbarUI {
    * Get the block ID of the currently selected toolbar slot
    * Requirements: 10.7
    * 
-   * @returns {number|null} Block ID of selected slot, or null if empty/pickaxe
+   * @returns {number|null} Block ID of selected slot, or null if empty/destroy mode
    */
   getSelectedBlockId() {
-    // Slot 0 (pickaxe) always returns null
+    // Slot 0 (destroy mode) always returns null
     if (this.selectedSlot === 0) {
       return null;
     }

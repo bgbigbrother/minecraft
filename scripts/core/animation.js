@@ -61,6 +61,11 @@ export function animate(player, world, dayNightCycle, toolbarUI, gameOverSystem)
       player.interactionHandler.update(dt);
     }
     
+    // Update arms animation mixer
+    if (player.updateArmsAnimation) {
+      player.updateArmsAnimation(dt);
+    }
+    
     // Update animation mixers for animated blocks
     if (world.activeAnimationMixers && world.activeAnimationMixers.size > 0) {
       for (const [key, mixer] of world.activeAnimationMixers) {

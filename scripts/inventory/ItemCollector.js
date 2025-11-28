@@ -96,6 +96,11 @@ export class ItemCollector {
       // Save inventory to localStorage synchronously
       player.inventory.save();
       
+      // Trigger collection animation (Requirements 2.3, 3.3)
+      if (player.playArmsAnimation) {
+        player.playArmsAnimation('COLLECT', false);
+      }
+      
       // Remove mesh from scene
       if (item.mesh) {
         world.remove(item.mesh);

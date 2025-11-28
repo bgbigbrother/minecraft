@@ -87,7 +87,7 @@ export class ControllsPlayerBase extends PlayerBase {
      * @returns {number} Slot number (0-8)
      */
     getActiveSlot() {
-        // If activeBlockId is 0 (pickaxe), return slot 0
+        // If activeBlockId is 0 (destroy mode), return slot 0
         if (this.activeBlockId === blocks.empty.id) {
             return 0;
         }
