@@ -56,8 +56,8 @@ describe('ToolControllsPlayerBase', () => {
     
     // Verify initial transform was stored
     expect(player.initialArmsTransform).toBeDefined();
-    expect(player.initialArmsTransform.position).toEqual({ x: 0, y: -7.5, z: 0.5 });
-    expect(player.initialArmsTransform.scale).toEqual({ x: 1.5, y: 1.5, z: 1.5 });
+    expect(player.initialArmsTransform.position).toEqual({ x: 0, y: -2, z: 0.2 });
+    expect(player.initialArmsTransform.scale).toEqual({ x: 0.4, y: 0.4, z: 0.4 });
     expect(player.initialArmsTransform.rotation.y).toBeCloseTo(Math.PI, 5);
   });
 
@@ -185,7 +185,7 @@ describe('ToolControllsPlayerBase', () => {
     // Verify drift is corrected
     expect(player.verifyArmsTransformInvariance()).toBe(true);
     expect(player.tool.container.position.x).toBeCloseTo(0, 5);
-    expect(player.tool.container.scale.y).toBeCloseTo(1.5, 5);
+    expect(player.tool.container.scale.y).toBeCloseTo(0.4, 5);
     expect(player.tool.container.rotation.z).toBeCloseTo(0, 5);
   });
 

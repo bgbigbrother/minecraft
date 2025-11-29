@@ -40,10 +40,10 @@ export class ToolControllsPlayerBase extends ControllsPlayerBase {
         
         // Configure arms model position (centered in first-person view)
         // X: left(-)/right(+), Y: down(-)/up(+), Z: far(-)/near(+)
-        this.tool.container.position.set(0, -7.5, 0.5);
+        this.tool.container.position.set(0, -2, 0.2);
         
         // Scale the arms model (GLB uses scale of 100 in armature)
-        this.tool.container.scale.set(1.5, 1.5, 1.5);
+        this.tool.container.scale.set(0.4, 0.4, 0.4);
         
         // Rotate arms to proper orientation (180 degrees on Y axis)
         this.tool.container.rotation.set(0, Math.PI, 0);

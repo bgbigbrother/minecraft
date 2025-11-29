@@ -178,12 +178,12 @@ describe('First-Person Arms System - Integration Tests', () => {
       player.setArms(mockModel, mockAnimations);
       
       expect(player.tool.container.position.x).toBeCloseTo(0);
-      expect(player.tool.container.position.y).toBeCloseTo(-7.5);
-      expect(player.tool.container.position.z).toBeCloseTo(0.5);
+      expect(player.tool.container.position.y).toBeCloseTo(-2);
+      expect(player.tool.container.position.z).toBeCloseTo(0.2);
       
-      expect(player.tool.container.scale.x).toBeCloseTo(1.5);
-      expect(player.tool.container.scale.y).toBeCloseTo(1.5);
-      expect(player.tool.container.scale.z).toBeCloseTo(1.5);
+      expect(player.tool.container.scale.x).toBeCloseTo(0.4);
+      expect(player.tool.container.scale.y).toBeCloseTo(0.4);
+      expect(player.tool.container.scale.z).toBeCloseTo(0.4);
       
       expect(player.tool.container.rotation.y).toBeCloseTo(Math.PI);
     });
